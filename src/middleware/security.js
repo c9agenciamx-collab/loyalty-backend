@@ -27,3 +27,9 @@ export const corsMiddleware = cors({
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 });
+
+export function allowIframe(req, res, next) {
+  res.setHeader('X-Frame-Options', 'ALLOW-FROM https://c9agencia.wixsite.com');
+  res.setHeader('Content-Security-Policy', "frame-ancestors 'self' https://c9agencia.wixsite.com https://*.wix.com");
+  next();
+}
