@@ -1,0 +1,182 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Business {
+  id            String   @id @default(uuid())
+  name          String
+  slug          String   @unique
+  logoUrl       String?
+  stampIconUrl  String?
+  colorBg       String   @default("#1a1a1a")
+  colorText     String   @default("#ffffff")
+  colorStampBg  String   @default("#f5c518")
+  colorStampEmpty String @default("#2e2e2e")
+  colorStampIcon  String @default("#1a1a1a")
+  colorStampIconEmpty String @default("#555555")
+  colorBorder   String   @default("#f5c518")
+  colorBorderEmpty String @default("#444444")
+  borderWidth   Int      @default(2)
+  cardTitle     String   @default("Tarjeta de Lealtad")
+  rewardText    String   @default("10 sellos = 1 premio")
+  totalStamps   Int      @default(10)
+  geoAlertTitle   String  @default("¡Estás cerca!")
+  geoAlertMessage String  @default("No olvides pedir tu sello")
+  geoRadiusMeters Int     @default(150)
+  geoLat          Float?
+  geoLng          Float?
+  maxStampsPerDay Int     @default(3)
+  qrRotateSecs    Int     @default(60)
+  geoVerify       Boolean @default(true)
+  milestones    Milestone[]
+  admins        Admin[]
+  customers     Customer[]
+  stamps        Stamp[]
+  pushMessages  PushMessage[]
+  fraudLogs     FraudLog[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@map("businesses")
+}
+
+model Admin {
+  id           String   @id @default(uuid())
+  businessId   String
+  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         AdminRole @default(OWNER)
+  sessions     AdminSession[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  @@map("admins")
+}
+
+model AdminSession {
+  id        String   @id @default(uuid())
+  adminId   String
+  admin     Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@map("admin_sessions")
+}
+
+enum AdminRole {
+  OWNER
+  STAFF
+}
+
+model Customer {
+  id           String   @id @default(uuid())
+  businessId   String
+  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name         String
+  email        String?
+  phone        String?
+  cardCode     String   @unique
+  pushToken    String?
+  walletType   String?
+  totalStamps  Int      @default(0)
+  stamps       Stamp[]
+  sessions     CustomerSession[]
+  fraudLogs    FraudLog[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  @@unique([businessId, email])
+  @@map("customers")
+}
+
+model CustomerSession {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  token      String   @unique
+  qrSecret   String
+  qrRotatedAt DateTime @default(now())
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  @@map("customer_sessions")
+}
+
+model Stamp {
+  id          String   @id @default(uuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id])
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id])
+  adminId     String?
+  method      StampMethod @default(QR_SCAN)
+  lat         Float?
+  lng         Float?
+  isRedeem    Boolean  @default(false)
+  rewardLabel String?
+  createdAt   DateTime @default(now())
+  @@map("stamps")
+}
+
+enum StampMethod {
+  QR_SCAN
+  MANUAL
+  REMOTE
+}
+
+model Milestone {
+  id         String   @id @default(uuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  atStamp    Int
+  prizeName  String
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  @@map("milestones")
+}
+
+model PushMessage {
+  id         String      @id @default(uuid())
+  businessId String
+  business   Business    @relation(fields: [businessId], references: [id])
+  title      String
+  body       String
+  segment    String      @default("all")
+  status     PushStatus  @default(PENDING)
+  sentAt     DateTime?
+  recipientCount Int     @default(0)
+  createdAt  DateTime    @default(now())
+  @@map("push_messages")
+}
+
+enum PushStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model FraudLog {
+  id         String     @id @default(uuid())
+  businessId String
+  business   Business   @relation(fields: [businessId], references: [id])
+  customerId String?
+  customer   Customer?  @relation(fields: [customerId], references: [id])
+  type       FraudType
+  detail     String
+  ip         String?
+  resolved   Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+  @@map("fraud_logs")
+}
+
+enum FraudType {
+  DUPLICATE_QR
+  DAILY_LIMIT_EXCEEDED
+  GEO_MISMATCH
+  DUPLICATE_ACCOUNT
+  SUSPICIOUS_PATTERN
+  INVALID_QR
+}
