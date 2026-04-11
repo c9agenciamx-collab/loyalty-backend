@@ -13,3 +13,6 @@ router.post('/auth/logout',   generalLimiter, requireAdmin,                authC
 router.get ('/auth/me',       generalLimiter, requireAdmin,                authCtrl.me);
 
 export default router;
+
+import * as dashCtrl from '../controllers/dashboard.controller.js';
+router.get('/dashboard', dashCtrl.serveDashboard);
