@@ -17,9 +17,12 @@ import adminRouter from './routes/admin.routes.js';
 
 const app = express();
 
+app.set('trust proxy', 1);
+
+app.get('/health', (req, res) => res.json({ ok: true, ts: Date.now() }));
+
 app.use(helmetMiddleware);
 app.use(corsMiddleware);
-app.set('trust proxy', 1);
 
 app.use(morgan('combined', {
   stream: { write: (msg) => logger.http(msg.trim()) },
@@ -34,8 +37,6 @@ app.use('/api', generalLimiter);
 app.use('/api', router);
 app.use('/api/customer', customerRouter);
 app.use('/api/admin', adminRouter);
-
-app.get('/health', (req, res) => res.json({ ok: true, ts: Date.now() }));
 
 app.use((req, res) => res.status(404).json({ error: 'Endpoint no encontrado' }));
 app.use(errorHandler);
