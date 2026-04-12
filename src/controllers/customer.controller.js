@@ -48,6 +48,7 @@ export async function registerCustomer(req, res) {
   return res.status(201).json({
     customer: { id: customer.id, name: customer.name, cardCode: customer.cardCode, totalStamps: 0 },
     qrSecret,
+    token,
     business: { id: business.id, name: business.name, cardTitle: business.cardTitle, totalStamps: business.totalStamps },
   });
 }
@@ -67,7 +68,7 @@ export async function loginCustomer(req, res) {
 
   const { token, qrSecret } = await createCustomerSession(customer.id);
   res.cookie('customerToken', token, cookieOpts());
-  return res.json({ customer: { id: customer.id, name: customer.name, cardCode: customer.cardCode, totalStamps: customer.totalStamps }, qrSecret });
+  return res.json({ customer: { id: customer.id, name: customer.name, cardCode: customer.cardCode, totalStamps: customer.totalStamps }, qrSecret, token });
 }
 
 export async function getCard(req, res) {
@@ -94,7 +95,13 @@ export async function getCard(req, res) {
     remaining: Math.max(0, m.atStamp - customer.totalStamps),
   }));
 
-  return res.json({ customer: { id: customer.id, name: customer.name, cardCode: customer.cardCode, totalStamps: customer.totalStamps }, qrSecret, token });
+  return res.json({
+    customer: { id: customer.id, name: customer.name, cardCode: customer.cardCode, totalStamps: customer.totalStamps, email: customer.email, walletType: customer.walletType },
+    qrSecret,
+    business: { id: business?.id, name: business?.name, cardTitle: business?.cardTitle, rewardText: business?.rewardText, totalStamps: business?.totalStamps, colorBg: business?.colorBg, colorText: business?.colorText, colorStampBg: business?.colorStampBg, colorStampEmpty: business?.colorStampEmpty, colorStampIcon: business?.colorStampIcon, colorBorder: business?.colorBorder, logoUrl: business?.logoUrl, stampIconUrl: business?.stampIconUrl },
+    rewards,
+    recentStamps: recentStamps.map(s => ({ id: s.id, isRedeem: s.isRedeem, rewardLabel: s.rewardLabel, createdAt: s.createdAt })),
+  });
 }
 
 export async function updateWallet(req, res) {
