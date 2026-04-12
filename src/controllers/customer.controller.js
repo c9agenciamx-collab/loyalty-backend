@@ -95,10 +95,6 @@ export async function getCard(req, res) {
   }));
 
   return res.json({ customer: { id: customer.id, name: customer.name, cardCode: customer.cardCode, totalStamps: customer.totalStamps }, qrSecret, token });
-    business: { id: business?.id, name: business?.name, cardTitle: business?.cardTitle, rewardText: business?.rewardText, totalStamps: business?.totalStamps, colorBg: business?.colorBg, colorText: business?.colorText, colorStampBg: business?.colorStampBg, colorStampEmpty: business?.colorStampEmpty, colorStampIcon: business?.colorStampIcon, colorBorder: business?.colorBorder, logoUrl: business?.logoUrl, stampIconUrl: business?.stampIconUrl },
-    rewards,
-    recentStamps: recentStamps.map(s => ({ id: s.id, isRedeem: s.isRedeem, rewardLabel: s.rewardLabel, createdAt: s.createdAt })),
-  });
 }
 
 export async function updateWallet(req, res) {
