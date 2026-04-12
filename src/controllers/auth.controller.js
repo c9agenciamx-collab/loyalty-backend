@@ -55,9 +55,15 @@ export async function login(req, res) {
     return res.status(401).json({ error: 'Credenciales inválidas' });
   }
 
-  const { token } = await createSession(admin.id);
-  res.cookie('adminToken', token, cookieOpts());
-  return res.json({ admin: { id: admin.id, name: admin.name, email: admin.email }, businessId: admin.businessId });
+ let token;
+try {
+  const session = await createSession(admin.id);
+  token = session.token;
+} catch (err) {
+  return res.status(500).json({ error: 'Error creando sesión', detail: err.message });
+}
+res.cookie('adminToken', token, cookieOpts());
+return res.json({ admin: { id: admin.id, name: admin.name, email: admin.email }, businessId: admin.businessId, token }); 
 }
 
 export async function logout(req, res) {
