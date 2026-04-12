@@ -1,6 +1,8 @@
 export function serveDashboard(req, res) {
   const token = req.query.token || '';
   res.setHeader('Content-Type', 'text/html');
+  res.setHeader('X-Frame-Options', 'ALLOWALL');
+res.setHeader('Content-Security-Policy', "frame-ancestors *");
   res.send(`<!DOCTYPE html>
 <html lang="es">
 <head>

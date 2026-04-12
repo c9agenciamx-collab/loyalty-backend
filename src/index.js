@@ -20,8 +20,15 @@ const app = express();
 app.set('trust proxy', 1);
 
 app.get('/health', (req, res) => res.json({ ok: true, ts: Date.now() }));
-
-app.use(helmetMiddleware);
+app.get('/dashboard', (req, res, next) => {
+  res.setHeader('X-Frame-Options', 'ALLOWALL');
+  res.setHeader('Content-Security-Policy', "frame-ancestors *");
+  next();
+});
+app.use((req, res, next) => {
+  if (req.path === '/dashboard') return next();
+  helmetMiddleware(req, res, next);
+});
 app.use(corsMiddleware);
 
 app.use(morgan('combined', {
