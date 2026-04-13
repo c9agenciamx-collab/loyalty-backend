@@ -40,7 +40,7 @@ body{background:#f7f5f2}
 </style>
 </head>
 <body>
-<div class="hdr">★ Loyalty<span id="bizname">Panel del negocio</span></div>
+<div class="hdr" style="display:flex;justify-content:space-between;align-items:center;">★ Loyalty<span id="bizname">Panel del negocio</span><button onclick="cerrarSesion()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:6px 12px;border-radius:7px;font-size:11px;cursor:pointer;">Cerrar sesión</button></div>
 <div class="nav">
   <div class="ni on" onclick="pg('res',this)">Resumen</div>
   <div class="ni" onclick="pg('sel',this)">Dar Sellos</div>
@@ -76,7 +76,7 @@ body{background:#f7f5f2}
   </div>
   <div class="pg" id="pg-cli">
     <div class="sec">
-      <div class="st" id="ct">Clientes</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div class="st" id="ct" style="margin:0;">Clientes</div><button onclick="exportar()" style="padding:8px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;">⬇ Exportar CSV</button></div>
       <div id="cl"></div>
     </div>
   </div>
@@ -142,6 +142,14 @@ async function sello(){
 function msg(t,c){const e=document.getElementById('sm');e.textContent=t;e.className='msg '+c;}
 
 load();
+async function exportar(){
+  window.open(API+'/api/admin/export/download?token='+T,'_blank');
+}
+function cerrarSesion(){
+localStorage.removeItem("adminToken");
+localStorage.removeItem("businessId");
+window.parent.postMessage({goTo:"/admin-login"},"*");
+}
 </script>
 </body>
 </html>
