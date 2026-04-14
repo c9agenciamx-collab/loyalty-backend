@@ -3,170 +3,220 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panel Loyalty</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<title>Kivo Loop — Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:sans-serif}
-body{background:#f7f5f2}
-.hdr{background:#1a1a1a;padding:14px 20px;color:#f5c518;font-weight:800;font-size:16px;display:flex;justify-content:space-between;align-items:center;}
-.hdr-left{display:flex;flex-direction:column;}
-.hdr span{font-size:12px;color:rgba(255,255,255,0.6);font-weight:400;margin-top:2px;}
-.nav{background:#fff;border-bottom:1px solid #e8e6e0;display:flex;padding:0 20px;overflow-x:auto;}
-.ni{padding:12px 16px;font-size:13px;color:#888;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
-.ni.on{color:#1a1a1a;font-weight:600;border-bottom-color:#1a1a1a}
-.main{padding:20px}
-.mets{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
-.met{background:#fff;border-radius:10px;padding:14px;border-left:4px solid #f5c518}
-.ml{font-size:10px;text-transform:uppercase;color:#888;margin-bottom:6px}
-.mv{font-size:26px;font-weight:800;color:#1a1a1a}
-.ms{font-size:11px;color:#22c55e;margin-top:3px}
-.sec{background:#fff;border-radius:10px;padding:18px;margin-bottom:14px}
-.st{font-size:13px;font-weight:600;margin-bottom:12px}
-.sf{display:flex;gap:8px;margin-bottom:12px}
-.si{flex:1;padding:9px 12px;border:1px solid #e8e6e0;border-radius:7px;font-size:13px;outline:none}
-.sb{padding:9px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer}
-.rb{background:#f7f5f2;border-radius:7px;padding:12px;display:none;margin-bottom:10px}
-.rb.on{display:block}
-.ra{display:flex;gap:7px;margin-top:10px}
-.bg{flex:1;padding:8px;background:#f5c518;color:#1a1a1a;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer}
-.br{flex:1;padding:8px;background:#fff;color:#1a1a1a;border:1px solid #e8e6e0;border-radius:7px;font-size:12px;cursor:pointer;font-weight:600}
-.br:hover{border-color:#1a1a1a}
-.msg{padding:9px 12px;border-radius:7px;font-size:12px;margin-top:8px;display:none}
-.msg.ok{background:#dcfce7;color:#166534;display:block}
-.msg.err{background:#fee2e2;color:#991b1b;display:block}
-.cr{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #e8e6e0;border-radius:8px;margin-bottom:7px}
-.ca{width:34px;height:34px;border-radius:50%;background:#f5c518;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
-.cn{font-size:13px;font-weight:600}
-.cm{font-size:11px;color:#888;margin-top:1px}
-.cst{font-size:12px;font-weight:700;margin-left:auto}
-.pg{display:none}.pg.on{display:block}
-.prize-list{margin-top:12px;display:none;flex-direction:column;gap:6px}
-.prize-list.on{display:flex}
-.pi{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1.5px solid #e8e6e0;border-radius:8px;cursor:pointer;transition:all .15s}
-.pi:hover{border-color:#f5c518;background:#fffdf0}
-.pi.sel{border-color:#f5c518;background:#fffdf0}
-.pi-name{font-size:13px;font-weight:600}
-.pi-sub{font-size:11px;color:#888;margin-top:1px}
-.pi-check{width:20px;height:20px;border-radius:50%;border:2px solid #e8e6e0;transition:all .15s;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
-.pi.sel .pi-check{background:#f5c518;border-color:#f5c518;color:#1a1a1a}
-.confirm-box{background:#fffdf0;border:1.5px solid #f5c518;border-radius:8px;padding:12px;margin-top:10px;display:none}
-.confirm-box.on{display:block}
-.confirm-title{font-size:13px;font-weight:600;margin-bottom:3px}
-.confirm-sub{font-size:12px;color:#888;margin-bottom:10px}
-.confirm-row{display:flex;gap:7px}
-.btn-confirm{flex:1;padding:8px;background:#22c55e;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer}
-.btn-cancel{flex:1;padding:8px;background:#fff;color:#1a1a1a;border:1px solid #e8e6e0;border-radius:7px;font-size:12px;cursor:pointer}
+:root{
+  --bg:#0A0F1F;
+  --surface:#12182B;
+  --card:#1A2238;
+  --border:rgba(255,255,255,0.07);
+  --grad:linear-gradient(135deg,#00C2FF,#6A5CFF,#FF2D95);
+  --blue:#00C2FF;
+  --purple:#6A5CFF;
+  --pink:#FF2D95;
+  --white:#FFFFFF;
+  --gray:#A0A7B8;
+  --muted:#6B7280;
+  --green:#22c55e;
+  --red:#ef4444;
+  --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Outfit',sans-serif;}
+body{background:var(--bg);color:var(--white);min-height:100vh;}
 
-/* QR SCANNER PAGE */
-.qr-page{background:#1a1a1a;min-height:calc(100vh - 100px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;gap:20px;}
-.qr-title{color:#fff;font-size:14px;font-weight:600;text-align:center;opacity:0.7;}
-.qr-box{background:#fff;border-radius:20px;padding:20px;display:flex;align-items:center;justify-content:center;width:440px;height:440px;}
-.qr-timer{display:flex;flex-direction:column;align-items:center;gap:6px;}
-.qr-timer-bar-bg{width:200px;height:6px;background:rgba(255,255,255,0.2);border-radius:3px;overflow:hidden;}
-.qr-timer-bar{height:6px;background:#f5c518;border-radius:3px;transition:width 1s linear;}
-.qr-timer-text{font-size:11px;color:rgba(255,255,255,0.5);}
-.qr-hint{font-size:12px;color:rgba(255,255,255,0.4);text-align:center;max-width:260px;line-height:1.5;}
-.qr-success{background:#1a2e1a;border:2px solid #22c55e;border-radius:12px;padding:16px 24px;text-align:center;display:none;animation:pop .3s ease;}
+/* HEADER */
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.hdr-logo{height:32px;object-fit:contain;}
+.hdr-right{display:flex;align-items:center;gap:12px;}
+.hdr-biz{font-size:13px;color:var(--gray);}
+.btn-logout{padding:7px 14px;background:transparent;border:1px solid var(--border);color:var(--gray);border-radius:30px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;}
+.btn-logout:hover{border-color:var(--pink);color:var(--pink);}
+
+/* NAV */
+.nav{background:var(--surface);border-bottom:1px solid var(--border);display:flex;padding:0 20px;overflow-x:auto;}
+.nav::-webkit-scrollbar{display:none;}
+.ni{padding:13px 18px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;}
+.ni:hover{color:var(--white);}
+.ni.on{color:var(--white);border-bottom-color:var(--blue);}
+
+/* PAGES */
+.pg{display:none;padding:20px;}.pg.on{display:block;}
+
+/* METRICS */
+.mets{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+@media(max-width:640px){.mets{grid-template-columns:repeat(2,1fr);}}
+.met{background:var(--card);border-radius:var(--radius);padding:16px;border:1px solid var(--border);position:relative;overflow:hidden;}
+.met::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--grad);}
+.ml{font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px;font-weight:500;}
+.mv{font-size:28px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ms{font-size:11px;color:var(--green);margin-top:4px;}
+
+/* SECTION */
+.sec{background:var(--card);border-radius:var(--radius);padding:18px;margin-bottom:14px;border:1px solid var(--border);}
+.sec-title{font-size:14px;font-weight:600;margin-bottom:14px;color:var(--white);}
+
+/* SEARCH */
+.sf{display:flex;gap:8px;margin-bottom:12px;}
+.si{flex:1;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--white);outline:none;font-family:'Outfit',sans-serif;transition:border .2s;}
+.si:focus{border-color:var(--blue);}
+.si::placeholder{color:var(--muted);}
+.btn-search{padding:10px 18px;background:var(--grad);color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;}
+
+/* RESULT BOX */
+.rb{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;display:none;margin-bottom:10px;}
+.rb.on{display:block;}
+.rb-name{font-size:16px;font-weight:700;}
+.rb-meta{font-size:12px;color:var(--muted);margin-top:3px;}
+.ra{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.btn-sello{flex:1;padding:10px;background:var(--grad);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;min-width:120px;}
+.btn-canje{flex:1;padding:10px;background:transparent;color:var(--white);border:1px solid var(--border);border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Outfit',sans-serif;min-width:120px;transition:all .2s;}
+.btn-canje:hover{border-color:var(--purple);}
+
+/* PRIZES */
+.prize-list{margin-top:12px;display:none;flex-direction:column;gap:6px;}
+.prize-list.on{display:flex;}
+.pi{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all .2s;background:var(--bg);}
+.pi:hover{border-color:var(--purple);background:rgba(106,92,255,0.08);}
+.pi.sel{border-color:var(--blue);background:rgba(0,194,255,0.08);}
+.pi-name{font-size:13px;font-weight:600;}
+.pi-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.pi-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .2s;}
+.pi.sel .pi-check{background:var(--blue);border-color:var(--blue);color:#000;font-weight:700;}
+.pi.sel .pi-check::after{content:'✓';}
+
+/* CONFIRM */
+.confirm-box{background:rgba(0,194,255,0.06);border:1px solid rgba(0,194,255,0.3);border-radius:10px;padding:14px;margin-top:10px;display:none;}
+.confirm-box.on{display:block;}
+.confirm-title{font-size:13px;font-weight:600;margin-bottom:3px;}
+.confirm-sub{font-size:12px;color:var(--muted);margin-bottom:12px;}
+.confirm-row{display:flex;gap:8px;}
+.btn-ok{flex:1;padding:9px;background:var(--green);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;}
+.btn-cancel{flex:1;padding:9px;background:transparent;color:var(--gray);border:1px solid var(--border);border-radius:8px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;}
+
+/* MSG */
+.msg{padding:10px 14px;border-radius:10px;font-size:12px;font-weight:500;margin-top:10px;display:none;}
+.msg.ok{background:rgba(34,197,94,0.1);color:var(--green);border:1px solid rgba(34,197,94,0.2);display:block;}
+.msg.err{background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);display:block;}
+
+/* CLIENTS */
+.cr{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;background:var(--surface);}
+.ca{width:38px;height:38px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0;}
+.cn{font-size:13px;font-weight:600;}
+.cm{font-size:11px;color:var(--muted);margin-top:2px;}
+.cst{font-size:13px;font-weight:700;margin-left:auto;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+/* QR PAGE */
+.qr-page{background:var(--bg);min-height:calc(100vh - 110px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;gap:20px;}
+.qr-label{font-size:13px;color:var(--gray);font-weight:500;text-align:center;}
+.qr-box{background:#fff;border-radius:20px;padding:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 60px rgba(0,194,255,0.15);}
+.qr-timer-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;width:280px;}
+.qr-bar-bg{width:100%;height:5px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;}
+.qr-bar{height:5px;border-radius:3px;background:var(--grad);transition:width 1s linear;}
+.qr-timer-txt{font-size:11px;color:var(--muted);}
+.qr-hint{font-size:12px;color:var(--muted);text-align:center;max-width:280px;line-height:1.6;}
+.qr-success{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:14px;padding:16px 24px;text-align:center;display:none;animation:pop .3s ease;width:100%;max-width:300px;}
 .qr-success.show{display:block;}
-.qr-success-name{font-size:18px;font-weight:700;color:#fff;margin-bottom:4px;}
-.qr-success-stamps{font-size:13px;color:#22c55e;}
-.qr-prize{background:#2e2200;border:2px solid #f5c518;border-radius:12px;padding:12px 20px;text-align:center;display:none;}
+.qr-success-name{font-size:17px;font-weight:700;color:var(--green);}
+.qr-success-stamps{font-size:13px;color:var(--muted);margin-top:4px;}
+.qr-prize{background:rgba(106,92,255,0.1);border:1px solid rgba(106,92,255,0.3);border-radius:12px;padding:12px 20px;text-align:center;display:none;width:100%;max-width:300px;}
 .qr-prize.show{display:block;}
-@keyframes pop{from{transform:scale(0.8);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes pop{from{transform:scale(0.85);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* STATUS */
+.status-txt{font-size:13px;color:var(--muted);padding:20px;}
 </style>
 </head>
 <body>
+
 <div class="hdr">
-  <div class="hdr-left">★ Loyalty<span id="bizname">Panel del negocio</span></div>
-  <button onclick="cerrarSesion()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:6px 12px;border-radius:7px;font-size:11px;cursor:pointer;">Cerrar sesión</button>
+  <img class="hdr-logo" src="https://static.wixstatic.com/media/bc23e3_3e6ca2afbf894d55ad62fda9c54b1e7f~mv2.png" alt="Kivo Loop">
+  <div class="hdr-right">
+    <span class="hdr-biz" id="bizname">Panel del negocio</span>
+    <button class="btn-logout" onclick="cerrarSesion()">Cerrar sesión</button>
+  </div>
 </div>
+
 <div class="nav">
   <div class="ni on" onclick="pg('res',this)">Resumen</div>
   <div class="ni" onclick="pg('qr',this);loadQR()">📷 Escáner</div>
   <div class="ni" onclick="pg('sel',this)">Dar Sellos</div>
   <div class="ni" onclick="pg('cli',this)">Clientes</div>
 </div>
-<div class="main">
 
-  <!-- RESUMEN -->
-  <div class="pg on" id="pg-res">
-    <div class="mets">
-      <div class="met"><div class="ml">Clientes</div><div class="mv" id="mc">-</div><div class="ms">registrados</div></div>
-      <div class="met"><div class="ml">Sellos hoy</div><div class="mv" id="mse">-</div><div class="ms">del día</div></div>
-      <div class="met"><div class="ml">Premios</div><div class="mv" id="mp">-</div><div class="ms">canjeados</div></div>
-      <div class="met"><div class="ml">Emails</div><div class="mv" id="me">-</div><div class="ms">registrados</div></div>
-    </div>
-    <div class="sec"><div id="st" style="font-size:13px;color:#888">Cargando...</div></div>
+<div class="pg on" id="pg-res">
+  <div class="mets">
+    <div class="met"><div class="ml">Clientes</div><div class="mv" id="mc">—</div><div class="ms" id="mc-sub">registrados</div></div>
+    <div class="met"><div class="ml">Sellos hoy</div><div class="mv" id="mse">—</div><div class="ms" id="mse-sub">del día</div></div>
+    <div class="met"><div class="ml">Premios</div><div class="mv" id="mp">—</div><div class="ms">canjeados</div></div>
+    <div class="met"><div class="ml">Emails</div><div class="mv" id="me">—</div><div class="ms">registrados</div></div>
   </div>
+  <div class="sec"><div class="status-txt" id="st">Cargando...</div></div>
+</div>
 
-  <!-- ESCÁNER QR NEGOCIO -->
-  <div class="pg" id="pg-qr">
-    <div class="qr-page">
-      <div class="qr-title">Muestra este código a tu cliente</div>
-      <div class="qr-box"><div id="business-qrcode"></div></div>
-      <div class="qr-timer">
-        <div class="qr-timer-bar-bg"><div class="qr-timer-bar" id="timerBar"></div></div>
-        <div class="qr-timer-text" id="timerText">Renovando en 60s</div>
-      </div>
-      <div class="qr-hint">El cliente escanea este QR desde su tarjeta en kivoloop.com. El código se renueva automáticamente.</div>
-      <div class="qr-success" id="qrSuccess">
-        <div class="qr-success-name" id="qrSuccessName"></div>
-        <div class="qr-success-stamps" id="qrSuccessStamps"></div>
-      </div>
-      <div class="qr-prize" id="qrPrize">
-        <div style="font-size:20px;">🎉</div>
-        <div style="color:#f5c518;font-weight:700;font-size:14px;margin-top:4px;" id="qrPrizeText"></div>
-      </div>
+<div class="pg" id="pg-qr">
+  <div class="qr-page">
+    <div class="qr-label">Muestra este código a tu cliente</div>
+    <div class="qr-box"><div id="business-qrcode"></div></div>
+    <div class="qr-timer-wrap">
+      <div class="qr-bar-bg"><div class="qr-bar" id="timerBar" style="width:100%"></div></div>
+      <div class="qr-timer-txt" id="timerText">Renovando en 60s</div>
+    </div>
+    <div class="qr-hint">El cliente escanea este QR desde su tarjeta en kivoloop.com. Se renueva automáticamente.</div>
+    <div class="qr-success" id="qrSuccess">
+      <div class="qr-success-name" id="qrSuccessName"></div>
+      <div class="qr-success-stamps" id="qrSuccessStamps"></div>
+    </div>
+    <div class="qr-prize" id="qrPrize">
+      <div style="font-size:20px;">🎉</div>
+      <div style="background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;font-size:14px;margin-top:4px;" id="qrPrizeText"></div>
     </div>
   </div>
+</div>
 
-  <!-- DAR SELLOS MANUAL -->
-  <div class="pg" id="pg-sel">
-    <div class="sec">
-      <div class="st">Dar sello a cliente</div>
-      <div class="sf">
-        <input class="si" id="ci" placeholder="Código LC-2026-00001 o nombre" onkeydown="if(event.key==='Enter')buscar()">
-        <button class="sb" onclick="buscar()">Buscar</button>
+<div class="pg" id="pg-sel">
+  <div class="sec">
+    <div class="sec-title">Dar sello a cliente</div>
+    <div class="sf">
+      <input class="si" id="ci" placeholder="Código LC-2026-00001 o nombre" onkeydown="if(event.key==='Enter')buscar()">
+      <button class="btn-search" onclick="buscar()">Buscar</button>
+    </div>
+    <div class="rb" id="rb">
+      <div class="rb-name" id="rn"></div>
+      <div class="rb-meta" id="rs"></div>
+      <div class="ra">
+        <button class="btn-sello" onclick="sello()" id="btnSello">+ Dar Sello</button>
+        <button class="btn-canje" onclick="togglePremios()" id="btnCanjear">🎁 Canjear Premio</button>
       </div>
-      <div class="rb" id="rb">
-        <div style="font-weight:600" id="rn"></div>
-        <div style="font-size:11px;color:#888;margin-top:3px" id="rs"></div>
-        <div class="ra">
-          <button class="bg" onclick="sello()" id="btnSello">+ Dar Sello</button>
-          <button class="br" onclick="togglePremios()" id="btnCanjear">🎁 Canjear Premio</button>
-        </div>
-        <div class="prize-list" id="prizeList"></div>
-        <div class="confirm-box" id="confirmBox">
-          <div class="confirm-title">¿Confirmar canje?</div>
-          <div class="confirm-sub" id="confirmSub"></div>
-          <div class="confirm-row">
-            <button class="btn-cancel" onclick="cancelCanje()">Cancelar</button>
-            <button class="btn-confirm" onclick="confirmarCanje()" id="btnConfirm">Confirmar</button>
-          </div>
+      <div class="prize-list" id="prizeList"></div>
+      <div class="confirm-box" id="confirmBox">
+        <div class="confirm-title">¿Confirmar canje?</div>
+        <div class="confirm-sub" id="confirmSub"></div>
+        <div class="confirm-row">
+          <button class="btn-cancel" onclick="cancelCanje()">Cancelar</button>
+          <button class="btn-ok" onclick="confirmarCanje()" id="btnConfirm">Confirmar</button>
         </div>
       </div>
-      <div class="msg" id="sm"></div>
     </div>
+    <div class="msg" id="sm"></div>
   </div>
+</div>
 
-  <!-- CLIENTES -->
-  <div class="pg" id="pg-cli">
-    <div class="sec">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <div class="st" id="ct" style="margin:0;">Clientes</div>
-        <button onclick="exportar()" style="padding:8px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;">⬇ Exportar CSV</button>
-      </div>
-      <div id="cl"></div>
+<div class="pg" id="pg-cli">
+  <div class="sec">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+      <div class="sec-title" id="ct" style="margin:0;">Clientes</div>
+      <button onclick="exportar()" style="padding:9px 16px;background:var(--grad);color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">⬇ Exportar CSV</button>
     </div>
+    <div id="cl"></div>
   </div>
-
 </div>
 
 <script>
 const API='https://loyalty-backend-production-204b.up.railway.app';
 let T='',cur=null,cls=[],milestones=[],selMilestone=null;
-let qrInterval=null,timerInterval=null,qrInstance=null,currentSecret=null,qrRotateSecs=60;
+let qrInterval=null,timerInterval=null,qrInstance=null,qrRotateSecs=60;
 
 const params=new URLSearchParams(window.location.search);
 T=params.get('token')||'';
@@ -176,10 +226,7 @@ async function load(){
   try{
     const rb=await fetch(API+'/api/admin/business',{headers:{Authorization:'Bearer '+T}});
     const db=await rb.json();
-    if(rb.ok){
-      document.getElementById('bizname').textContent=db.name||'Panel del negocio';
-      qrRotateSecs=db.qrRotateSecs||60;
-    }
+    if(rb.ok){document.getElementById('bizname').textContent=db.name||'Panel del negocio';qrRotateSecs=db.qrRotateSecs||60;}
     const r=await fetch(API+'/api/admin/stats/dashboard',{headers:{Authorization:'Bearer '+T}});
     const d=await r.json();
     if(!r.ok){document.getElementById('st').textContent='Error: '+d.error;return;}
@@ -188,7 +235,7 @@ async function load(){
     document.getElementById('mp').textContent=d.metrics.rewardsTotal;
     document.getElementById('me').textContent=d.metrics.emailCount;
     document.getElementById('st').textContent='✅ Sistema funcionando correctamente';
-    document.getElementById('st').style.color='#166534';
+    document.getElementById('st').style.color='#22c55e';
     const rm=await fetch(API+'/api/admin/rewards/active',{headers:{Authorization:'Bearer '+T}});
     if(rm.ok){const dm=await rm.json();milestones=dm.milestones||[];}
     const r2=await fetch(API+'/api/admin/customers?limit=100',{headers:{Authorization:'Bearer '+T}});
@@ -197,7 +244,7 @@ async function load(){
     document.getElementById('ct').textContent=(d2.total||cls.length)+' clientes registrados';
     document.getElementById('cl').innerHTML=cls.map(c=>{
       const i=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-      return'<div class="cr"><div class="ca">'+i+'</div><div><div class="cn">'+c.name+'</div><div class="cm">'+c.cardCode+' · '+(c.email||'Sin email')+'</div></div><div class="cst">'+c.totalStamps+' ★</div></div>';
+      return`<div class="cr"><div class="ca">${i}</div><div><div class="cn">${c.name}</div><div class="cm">${c.cardCode} · ${c.email||'Sin email'}</div></div><div class="cst">${c.totalStamps} ★</div></div>`;
     }).join('');
   }catch(e){document.getElementById('st').textContent='Error: '+e.message;}
 }
@@ -210,52 +257,38 @@ function pg(n,el){
   if(n!=='qr')stopQR();
 }
 
-// ── QR NEGOCIO ──
 async function loadQR(){
   stopQR();
   await refreshQR();
-  qrInterval=setInterval(refreshQR, qrRotateSecs*1000);
+  qrInterval=setInterval(refreshQR,qrRotateSecs*1000);
 }
 
 async function refreshQR(){
   try{
     const r=await fetch(API+'/api/admin/qr',{headers:{Authorization:'Bearer '+T}});
     const d=await r.json();
-    currentSecret=d.secret;
-    const secsLeft=d.expiresIn||qrRotateSecs;
-    renderQR(currentSecret);
-    startTimer(secsLeft);
+    renderQR(d.secret);
+    startTimer(d.expiresIn||qrRotateSecs);
   }catch(e){console.error(e);}
 }
 
 function renderQR(secret){
   const el=document.getElementById('business-qrcode');
   el.innerHTML='';
-  qrInstance=new QRCode(el,{
-    text: secret,
-    width:400, height:400,
-    colorDark:'#1a1a1a', colorLight:'#ffffff',
-    correctLevel: QRCode.CorrectLevel.M
-  });
+  new QRCode(el,{text:secret,width:260,height:260,colorDark:'#0A0F1F',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
 }
 
-function startTimer(secsLeft){
+function startTimer(secs){
   if(timerInterval)clearInterval(timerInterval);
-  let secs=secsLeft;
-  updateTimer(secs);
-  timerInterval=setInterval(()=>{
-    secs--;
-    updateTimer(secs);
-    if(secs<=0){clearInterval(timerInterval);}
-  },1000);
+  let s=secs;
+  updateTimer(s);
+  timerInterval=setInterval(()=>{s--;updateTimer(s);if(s<=0)clearInterval(timerInterval);},1000);
 }
 
-function updateTimer(secs){
-  const pct=Math.max(0,(secs/qrRotateSecs)*100);
+function updateTimer(s){
+  const pct=Math.max(0,(s/qrRotateSecs)*100);
   document.getElementById('timerBar').style.width=pct+'%';
-  document.getElementById('timerText').textContent='Renovando en '+Math.max(0,secs)+'s';
-  // Color cambia a rojo cuando queda poco
-  document.getElementById('timerBar').style.background=secs<=10?'#ef4444':'#f5c518';
+  document.getElementById('timerText').textContent='Renovando en '+Math.max(0,s)+'s';
 }
 
 function stopQR(){
@@ -264,27 +297,17 @@ function stopQR(){
   qrInterval=null;timerInterval=null;
 }
 
-// Escuchar eventos de sello exitoso desde la tarjeta del cliente (postMessage)
 window.addEventListener('message',function(e){
   if(e.data&&e.data.type==='STAMP_SUCCESS'){
-    const {customerName,totalStamps,prizes}=e.data;
     const s=document.getElementById('qrSuccess');
-    document.getElementById('qrSuccessName').textContent='✅ '+customerName;
-    document.getElementById('qrSuccessStamps').textContent=totalStamps+' sellos acumulados';
+    document.getElementById('qrSuccessName').textContent='✅ '+e.data.customerName;
+    document.getElementById('qrSuccessStamps').textContent=e.data.totalStamps+' sellos acumulados';
     s.classList.add('show');
     setTimeout(()=>s.classList.remove('show'),4000);
-    if(prizes&&prizes.length>0){
-      const p=document.getElementById('qrPrize');
-      document.getElementById('qrPrizeText').textContent='🎉 Premio alcanzado: '+prizes[0].prizeName;
-      p.classList.add('show');
-      setTimeout(()=>p.classList.remove('show'),6000);
-    }
-    // Renovar QR inmediatamente después del escaneo
     refreshQR();
   }
 });
 
-// ── BÚSQUEDA MANUAL ──
 function buscar(){
   const s=document.getElementById('ci').value.trim().toUpperCase();
   const f=cls.find(c=>c.cardCode===s||c.name.toUpperCase().includes(s));
@@ -298,9 +321,7 @@ function buscar(){
     document.getElementById('confirmBox').classList.remove('on');
     document.getElementById('btnCanjear').textContent='🎁 Canjear Premio';
     selMilestone=null;
-  } else {
-    msg('Cliente no encontrado','err');
-  }
+  } else { msg('Cliente no encontrado','err'); }
 }
 
 async function sello(){
@@ -316,7 +337,7 @@ async function sello(){
       const idx=cls.findIndex(c=>c.cardCode===cur.cardCode);
       if(idx>=0)cls[idx].totalStamps=cur.totalStamps;
       let txt='✅ Sello dado a '+cur.name;
-      if(d.milestonesReached&&d.milestonesReached.length>0)txt+=' · 🎉 Premio alcanzado: '+d.milestonesReached[0].prizeName;
+      if(d.milestonesReached&&d.milestonesReached.length>0)txt+=' · 🎉 Premio: '+d.milestonesReached[0].prizeName;
       msg(txt,'ok');
     } else msg('❌ '+(d.error||'Error'),'err');
   }catch(e){msg('Error: '+e.message,'err');}
@@ -326,21 +347,10 @@ async function sello(){
 function togglePremios(){
   const list=document.getElementById('prizeList');
   const isOpen=list.classList.contains('on');
-  if(isOpen){
-    list.classList.remove('on');
-    document.getElementById('confirmBox').classList.remove('on');
-    document.getElementById('btnCanjear').textContent='🎁 Canjear Premio';
-    selMilestone=null;
-    return;
-  }
+  if(isOpen){list.classList.remove('on');document.getElementById('confirmBox').classList.remove('on');document.getElementById('btnCanjear').textContent='🎁 Canjear Premio';selMilestone=null;return;}
   const canjes=milestones.filter(m=>cur.totalStamps>=m.atStamp);
-  if(!canjes.length){msg('El cliente no tiene sellos suficientes para ningún premio','err');return;}
-  list.innerHTML=canjes.map(m=>`
-    <div class="pi" id="pi-${m.id}" onclick="selectPremio('${m.id}','${m.prizeName}',${m.atStamp})">
-      <div><div class="pi-name">🎁 ${m.prizeName}</div><div class="pi-sub">Requiere ${m.atStamp} sellos</div></div>
-      <div class="pi-check" id="chk-${m.id}"></div>
-    </div>
-  `).join('');
+  if(!canjes.length){msg('El cliente no tiene sellos suficientes','err');return;}
+  list.innerHTML=canjes.map(m=>`<div class="pi" id="pi-${m.id}" onclick="selectPremio('${m.id}','${m.prizeName}',${m.atStamp})"><div><div class="pi-name">🎁 ${m.prizeName}</div><div class="pi-sub">Requiere ${m.atStamp} sellos</div></div><div class="pi-check" id="chk-${m.id}"></div></div>`).join('');
   list.classList.add('on');
   document.getElementById('btnCanjear').textContent='✕ Cerrar';
 }
@@ -379,11 +389,7 @@ async function confirmarCanje(){
 
 function msg(t,c){const e=document.getElementById('sm');e.textContent=t;e.className='msg '+c;setTimeout(()=>e.className='msg',5000);}
 async function exportar(){window.open(API+'/api/admin/export/download?token='+T,'_blank');}
-function cerrarSesion(){
-  localStorage.removeItem('adminToken');
-  localStorage.removeItem('businessId');
-  window.parent.postMessage({goTo:'/admin-login'},'*');
-}
+function cerrarSesion(){localStorage.removeItem('adminToken');localStorage.removeItem('businessId');window.parent.postMessage({goTo:'/admin-login'},'*');}
 
 load();
 </script>

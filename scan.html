@@ -3,30 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Escanear sello</title>
+<title>Kivo Loop — Escanear</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{background:#0f0f0f;color:#fff;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:16px;}
-.title{font-size:15px;color:#f5c518;font-weight:700;text-align:center;}
-#reader{width:300px;border-radius:16px;overflow:hidden;}
+:root{
+  --bg:#0A0F1F;
+  --surface:#12182B;
+  --card:#1A2238;
+  --grad:linear-gradient(135deg,#00C2FF,#6A5CFF,#FF2D95);
+  --blue:#00C2FF;
+  --purple:#6A5CFF;
+  --pink:#FF2D95;
+  --green:#22c55e;
+  --red:#ef4444;
+  --gray:#A0A7B8;
+  --muted:#6B7280;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Outfit',sans-serif;}
+body{background:var(--bg);color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:20px;}
+.logo{height:36px;object-fit:contain;}
+.title{font-size:15px;color:var(--gray);font-weight:500;text-align:center;}
+#reader{width:min(300px,90vw);border-radius:16px;overflow:hidden;box-shadow:0 0 40px rgba(0,194,255,0.1);}
 #reader video{border-radius:16px;}
-.status{font-size:12px;color:rgba(255,255,255,0.5);text-align:center;}
-.result{background:#1a2e1a;border:2px solid #22c55e;border-radius:14px;padding:20px;text-align:center;display:none;animation:pop .3s ease;width:100%;max-width:300px;}
+.status{font-size:12px;color:var(--muted);text-align:center;}
+.result{background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.3);border-radius:16px;padding:24px;text-align:center;display:none;animation:pop .3s ease;width:min(300px,90vw);}
 .result.show{display:block;}
-.result-icon{font-size:48px;margin-bottom:8px;}
-.result-title{font-size:20px;font-weight:700;color:#22c55e;margin-bottom:4px;}
-.result-sub{font-size:14px;color:#aaa;}
-.error-box{background:#2e1a1a;border:2px solid #ef4444;border-radius:14px;padding:16px;text-align:center;display:none;width:100%;max-width:300px;}
-.error-box.show{display:block;font-size:13px;color:#ef4444;}
-.prize{background:#2e2200;border:2px solid #f5c518;border-radius:12px;padding:14px;text-align:center;display:none;width:100%;max-width:300px;}
+.result-icon{font-size:52px;margin-bottom:10px;}
+.result-title{font-size:22px;font-weight:800;color:var(--green);margin-bottom:4px;}
+.result-sub{font-size:14px;color:var(--gray);}
+.error-box{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:14px;padding:14px;text-align:center;display:none;width:min(300px,90vw);}
+.error-box.show{display:block;font-size:13px;color:var(--red);}
+.prize{background:rgba(106,92,255,0.08);border:1px solid rgba(106,92,255,0.3);border-radius:14px;padding:14px;text-align:center;display:none;width:min(300px,90vw);}
 .prize.show{display:block;}
-.back-btn{padding:12px 40px;background:transparent;color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.15);border-radius:30px;font-size:13px;cursor:pointer;}
-@keyframes pop{from{transform:scale(0.8);opacity:0}to{transform:scale(1);opacity:1}}
+.prize-text{font-weight:700;font-size:15px;margin-top:6px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.back-btn{padding:12px 36px;background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.1);border-radius:30px;font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;}
+.back-btn:hover{border-color:var(--blue);color:var(--blue);}
+@keyframes pop{from{transform:scale(0.85);opacity:0}to{transform:scale(1);opacity:1}}
 </style>
 </head>
 <body>
 
+<img class="logo" src="https://static.wixstatic.com/media/bc23e3_3e6ca2afbf894d55ad62fda9c54b1e7f~mv2.png" alt="Kivo Loop">
 <div class="title">Apunta al QR del cajero</div>
 
 <div id="reader"></div>
@@ -42,8 +60,8 @@ body{background:#0f0f0f;color:#fff;font-family:'Segoe UI',sans-serif;min-height:
 <div class="error-box" id="errorBox"></div>
 
 <div class="prize" id="prize">
-  <div style="font-size:24px;">🏆</div>
-  <div style="color:#f5c518;font-weight:700;font-size:15px;margin-top:6px;" id="prizeText"></div>
+  <div style="font-size:26px;">🏆</div>
+  <div class="prize-text" id="prizeText"></div>
 </div>
 
 <button class="back-btn" onclick="stopAndBack()">Cerrar</button>
@@ -59,7 +77,7 @@ function start() {
   scanner = new Html5Qrcode('reader');
   scanner.start(
     { facingMode: 'environment' },
-    { fps: 10, qrbox: { width: 250, height: 250 } },
+    { fps: 10, qrbox: { width: 240, height: 240 } },
     (decodedText) => {
       if (scanned) return;
       scanned = true;
@@ -68,11 +86,11 @@ function start() {
         submitScan(decodedText.trim());
       });
     },
-    () => {} // error silencioso mientras busca
+    () => {}
   ).then(() => {
     document.getElementById('status').textContent = 'Apunta al QR del cajero';
   }).catch(err => {
-    document.getElementById('status').textContent = 'Error: ' + err;
+    document.getElementById('status').textContent = 'Error accediendo a la cámara';
   });
 }
 
@@ -92,10 +110,10 @@ async function submitScan(secret) {
     if (res.ok && data.ok) {
       document.getElementById('resultSub').textContent = data.totalStamps + ' sellos acumulados';
       document.getElementById('result').classList.add('show');
-      document.getElementById('status').textContent = '';
       document.getElementById('reader').style.display = 'none';
+      document.getElementById('status').textContent = '';
       if (data.milestonesReached && data.milestonesReached.length > 0) {
-        document.getElementById('prizeText').textContent = '¡Premio: ' + data.milestonesReached[0].prizeName + '!';
+        document.getElementById('prizeText').textContent = '¡Premio alcanzado: ' + data.milestonesReached[0].prizeName + '!';
         document.getElementById('prize').classList.add('show');
       }
       setTimeout(() => history.back(), 4000);
