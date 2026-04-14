@@ -7,29 +7,29 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:#0f0f0f;color:#fff;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:20px;}
-.title{font-size:14px;color:#f5c518;font-weight:700;text-align:center;}
-.frame{position:relative;width:280px;height:280px;border-radius:16px;overflow:hidden;background:#111;}
+body{background:#0f0f0f;color:#fff;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:16px;}
+.title{font-size:15px;color:#f5c518;font-weight:700;text-align:center;}
+.frame{position:relative;width:300px;height:300px;border-radius:16px;overflow:hidden;background:#111;}
 video{width:100%;height:100%;object-fit:cover;display:block;}
 canvas{display:none;}
-.corner{position:absolute;width:40px;height:40px;border-color:#f5c518;border-style:solid;}
+.corner{position:absolute;width:44px;height:44px;border-color:#f5c518;border-style:solid;}
 .tl{top:0;left:0;border-width:4px 0 0 4px;border-radius:8px 0 0 0;}
 .tr{top:0;right:0;border-width:4px 4px 0 0;border-radius:0 8px 0 0;}
 .bl{bottom:0;left:0;border-width:0 0 4px 4px;border-radius:0 0 0 8px;}
 .br{bottom:0;right:0;border-width:0 4px 4px 0;border-radius:0 0 8px 0;}
-.scanline{position:absolute;left:0;right:0;height:2px;background:#f5c518;opacity:0.8;animation:sl 2s linear infinite;}
-@keyframes sl{0%{top:0}100%{top:100%}}
-.hint{font-size:12px;color:rgba(255,255,255,0.4);text-align:center;max-width:260px;line-height:1.6;}
-.result{background:#1a2e1a;border:2px solid #22c55e;border-radius:14px;padding:20px;text-align:center;display:none;animation:pop .3s ease;width:100%;max-width:280px;}
+.scanline{position:absolute;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#f5c518,transparent);animation:sl 1.5s ease-in-out infinite;}
+@keyframes sl{0%{top:5%}100%{top:95%}}
+.status{font-size:12px;color:rgba(255,255,255,0.4);text-align:center;}
+.result{background:#1a2e1a;border:2px solid #22c55e;border-radius:14px;padding:20px;text-align:center;display:none;animation:pop .3s ease;width:100%;max-width:300px;}
 .result.show{display:block;}
-.result-icon{font-size:40px;margin-bottom:8px;}
-.result-title{font-size:18px;font-weight:700;color:#22c55e;margin-bottom:4px;}
-.result-sub{font-size:13px;color:#aaa;}
-.error{background:#2e1a1a;border:2px solid #ef4444;border-radius:14px;padding:16px;text-align:center;display:none;width:100%;max-width:280px;}
-.error.show{display:block;font-size:13px;color:#ef4444;}
-.prize{background:#2e2200;border:2px solid #f5c518;border-radius:12px;padding:12px;text-align:center;display:none;width:100%;max-width:280px;}
+.result-icon{font-size:48px;margin-bottom:8px;}
+.result-title{font-size:20px;font-weight:700;color:#22c55e;margin-bottom:4px;}
+.result-sub{font-size:14px;color:#aaa;}
+.error-box{background:#2e1a1a;border:2px solid #ef4444;border-radius:14px;padding:16px;text-align:center;display:none;width:100%;max-width:300px;}
+.error-box.show{display:block;font-size:13px;color:#ef4444;}
+.prize{background:#2e2200;border:2px solid #f5c518;border-radius:12px;padding:14px;text-align:center;display:none;width:100%;max-width:300px;}
 .prize.show{display:block;}
-.back-btn{padding:12px 32px;background:transparent;color:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.2);border-radius:30px;font-size:13px;cursor:pointer;margin-top:8px;}
+.back-btn{padding:12px 40px;background:transparent;color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.15);border-radius:30px;font-size:13px;cursor:pointer;}
 @keyframes pop{from{transform:scale(0.8);opacity:0}to{transform:scale(1);opacity:1}}
 </style>
 </head>
@@ -38,7 +38,7 @@ canvas{display:none;}
 <div class="title">Apunta al QR del cajero</div>
 
 <div class="frame" id="frame">
-  <video id="video" playsinline></video>
+  <video id="video" playsinline autoplay muted></video>
   <canvas id="canvas"></canvas>
   <div class="corner tl"></div>
   <div class="corner tr"></div>
@@ -47,19 +47,19 @@ canvas{display:none;}
   <div class="scanline" id="scanline"></div>
 </div>
 
-<div class="hint">Escanea el código QR que muestra el cajero para obtener tu sello</div>
+<div class="status" id="status">Buscando código QR...</div>
 
 <div class="result" id="result">
   <div class="result-icon">🎉</div>
-  <div class="result-title" id="resultTitle">¡Sello obtenido!</div>
+  <div class="result-title">¡Sello obtenido!</div>
   <div class="result-sub" id="resultSub"></div>
 </div>
 
-<div class="error" id="error"></div>
+<div class="error-box" id="errorBox"></div>
 
 <div class="prize" id="prize">
-  <div style="font-size:20px;">🏆</div>
-  <div style="color:#f5c518;font-weight:700;font-size:14px;margin-top:4px;" id="prizeText"></div>
+  <div style="font-size:24px;">🏆</div>
+  <div style="color:#f5c518;font-weight:700;font-size:15px;margin-top:6px;" id="prizeText"></div>
 </div>
 
 <button class="back-btn" onclick="window.close()">Cerrar</button>
@@ -68,31 +68,56 @@ canvas{display:none;}
 const API = 'https://loyalty-backend-production-204b.up.railway.app/api';
 const params = new URLSearchParams(window.location.search);
 const token = params.get('token') || localStorage.getItem('customerToken') || '';
-let stream = null, interval = null, scanned = false;
+let stream = null, scanInterval = null, scanned = false;
+let detector = null;
 
 async function start() {
+  // Intentar BarcodeDetector nativo primero
+  if ('BarcodeDetector' in window) {
+    try {
+      detector = new BarcodeDetector({ formats: ['qr_code'] });
+    } catch(e) { detector = null; }
+  }
+
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
     const video = document.getElementById('video');
     video.srcObject = stream;
-    video.play();
-    interval = setInterval(scanFrame, 300);
+    await video.play();
+    scanInterval = setInterval(scanFrame, 200);
   } catch(e) {
     showError('No se pudo acceder a la cámara. Permite el acceso e intenta de nuevo.');
   }
 }
 
-function scanFrame() {
+async function scanFrame() {
   if (scanned) return;
   const video = document.getElementById('video');
-  if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+  if (video.readyState < 2) return;
+
+  // Método 1: BarcodeDetector nativo (más preciso en iOS/Android)
+  if (detector) {
+    try {
+      const codes = await detector.detect(video);
+      if (codes.length > 0) {
+        const val = codes[0].rawValue;
+        if (val) { scanned = true; stopCamera(); submitScan(val.trim()); return; }
+      }
+    } catch(e) {}
+  }
+
+  // Método 2: jsQR como fallback
   const canvas = document.getElementById('canvas');
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   const ctx = canvas.getContext('2d');
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const code = jsQR(imageData.data, imageData.width, imageData.height);
+  const code = jsQR(imageData.data, imageData.width, imageData.height, {
+    inversionAttempts: 'dontInvert'
+  });
   if (code && code.data) {
     scanned = true;
     stopCamera();
@@ -102,9 +127,10 @@ function scanFrame() {
 
 function stopCamera() {
   if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-  if (interval) { clearInterval(interval); interval = null; }
+  if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
   document.getElementById('scanline').style.display = 'none';
   document.getElementById('frame').style.opacity = '0.3';
+  document.getElementById('status').textContent = 'Procesando...';
 }
 
 async function submitScan(secret) {
@@ -118,27 +144,27 @@ async function submitScan(secret) {
     if (res.ok && data.ok) {
       document.getElementById('resultSub').textContent = data.totalStamps + ' sellos acumulados';
       document.getElementById('result').classList.add('show');
+      document.getElementById('status').textContent = '';
       if (data.milestonesReached && data.milestonesReached.length > 0) {
-        document.getElementById('prizeText').textContent = '¡Premio alcanzado: ' + data.milestonesReached[0].prizeName + '!';
+        document.getElementById('prizeText').textContent = '¡Premio: ' + data.milestonesReached[0].prizeName + '!';
         document.getElementById('prize').classList.add('show');
       }
-      // Cerrar automáticamente después de 4 segundos
       setTimeout(() => window.close(), 4000);
     } else {
       showError(data.error || 'QR inválido o expirado');
-      setTimeout(() => { scanned = false; start(); }, 3000);
+      setTimeout(() => { scanned = false; document.getElementById('frame').style.opacity = '1'; document.getElementById('scanline').style.display = 'block'; document.getElementById('status').textContent = 'Buscando código QR...'; start(); }, 2500);
     }
   } catch(e) {
     showError('Error de conexión');
-    setTimeout(() => { scanned = false; start(); }, 3000);
+    setTimeout(() => { scanned = false; start(); }, 2500);
   }
 }
 
 function showError(msg) {
-  const el = document.getElementById('error');
+  const el = document.getElementById('errorBox');
   el.textContent = msg;
   el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 4000);
+  setTimeout(() => el.classList.remove('show'), 3000);
 }
 
 start();
