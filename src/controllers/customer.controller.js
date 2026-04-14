@@ -127,12 +127,3 @@ export async function subscribePush(req, res) {
   return res.json({ ok: true });
 }
 
-export async function subscribePush(req, res) {
-  const { playerId } = req.body;
-  if (!playerId) return res.status(400).json({ error: 'playerId requerido' });
-  await prisma.customer.update({
-    where: { id: req.customer.id },
-    data: { pushToken: playerId }
-  });
-  return res.json({ ok: true });
-}
