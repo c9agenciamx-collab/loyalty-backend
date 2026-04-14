@@ -143,19 +143,8 @@ function msg(t,c){const e=document.getElementById('sm');e.textContent=t;e.classN
 
 load();
 async function exportar(){
-  try{
-    const r=await fetch(API+'/api/admin/export',{method:'POST',headers:{Authorization:'Bearer '+T,'Content-Type':'application/json'},body:JSON.stringify({format:'csv',fields:['name','email','phone','cardCode','totalStamps','createdAt']})});
-    if(!r.ok){showToast('Error al exportar','err');return;}
-    const text=await r.text();
-    const blob=new Blob([text],{type:'text/csv;charset=utf-8'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url;a.download='clientes-kivo.csv';
-    document.body.appendChild(a);a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    showToast('CSV descargado');
-  }catch(e){showToast('Error: '+e.message,'err');}
+  const url='https://loyalty-backend-production-204b.up.railway.app/api/admin/export/download?token='+T;
+  window.open(url,'_blank');
 }
 function cerrarSesion(){
 localStorage.removeItem("adminToken");
