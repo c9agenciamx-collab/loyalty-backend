@@ -31,6 +31,9 @@ export async function scanBusinessQR(req, res) {
 
   const bqr = await prisma.businessQR.findUnique({ where: { businessId } });
   if (!bqr || bqr.secret !== secret) {
+    await prisma.fraudLog.create({
+      data: { businessId, customerId, type: 'INVALID_QR', detail: 'QR inválido o ya usado', ip: req.ip ?? null }
+    }).catch(() => {});
     return res.status(400).json({ error: 'QR inválido o expirado' });
   }
 
@@ -46,8 +49,17 @@ export async function scanBusinessQR(req, res) {
     where: { customerId, businessId, isRedeem: false, createdAt: { gte: today } }
   });
   if (stampsToday >= business.maxStampsPerDay) {
+    await prisma.fraudLog.create({
+      data: { businessId, customerId, type: 'DAILY_LIMIT_EXCEEDED', detail: `${stampsToday} sellos hoy`, ip: req.ip ?? null }
+    }).catch(() => {});
     return res.status(400).json({ error: 'Límite de sellos del día alcanzado' });
   }
+
+  // Rotar QR inmediatamente (un solo uso)
+  await prisma.businessQR.update({
+    where: { businessId },
+    data: { secret: uuid(), rotatedAt: new Date() }
+  });
 
   const [, updatedCustomer] = await prisma.$transaction([
     prisma.stamp.create({ data: { businessId, customerId, method: 'QR_SCAN' } }),
