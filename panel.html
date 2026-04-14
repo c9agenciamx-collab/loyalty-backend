@@ -147,12 +147,14 @@ async function exportar(){
     const r=await fetch(API+'/api/admin/export',{method:'POST',headers:{Authorization:'Bearer '+T,'Content-Type':'application/json'},body:JSON.stringify({format:'csv',fields:['name','email','phone','cardCode','totalStamps','createdAt']})});
     if(!r.ok){showToast('Error al exportar','err');return;}
     const text=await r.text();
-    const blob=new Blob(['\uFEFF'+text],{type:'text/csv;charset=utf-8'});
+    const blob=new Blob([text],{type:'text/csv;charset=utf-8'});
     const url=URL.createObjectURL(blob);
-    const overlay=document.createElement('div');
-    overlay.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:9999;';
-    overlay.innerHTML='<div style="background:#fff;border-radius:16px;padding:32px;text-align:center;max-width:280px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);"><div style="font-size:40px;margin-bottom:12px;">📥</div><div style="font-size:16px;font-weight:700;margin-bottom:6px;color:#1a1a1a;">CSV listo</div><div style="font-size:13px;color:#888;margin-bottom:20px;">Toca el botón para descargar tu lista de clientes</div><a href="'+url+'" download="clientes-kivo.csv" style="display:block;padding:14px;background:#f5c518;color:#000;border-radius:10px;font-weight:700;text-decoration:none;font-size:14px;margin-bottom:10px;" onclick="document.body.removeChild(this.closest('[style*=fixed]'))">⬇ Descargar CSV</a><div style="font-size:12px;color:#aaa;cursor:pointer;padding:8px;" onclick="document.body.removeChild(this.closest('[style*=fixed]'))">Cancelar</div></div>';
-    document.body.appendChild(overlay);
+    const a=document.createElement('a');
+    a.href=url;a.download='clientes-kivo.csv';
+    document.body.appendChild(a);a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('CSV descargado');
   }catch(e){showToast('Error: '+e.message,'err');}
 }
 function cerrarSesion(){
