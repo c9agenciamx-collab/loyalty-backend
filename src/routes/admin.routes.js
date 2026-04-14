@@ -5,6 +5,7 @@ import { validate } from '../middleware/validate.js';
 import { updateBusinessSchema, createMilestoneSchema, giveStampSchema, redeemSchema, sendPushSchema, exportSchema } from '../validators/index.js';
 import { z } from 'zod';
 import * as stampCtrl  from '../controllers/stamp.controller.js';
+import * as qrCtrl   from '../controllers/qr.controller.js';
 import * as pushCtrl   from '../controllers/push.controller.js';
 import * as exportCtrl from '../controllers/export.controller.js';
 import * as bizCtrl    from '../controllers/business.controller.js';
@@ -53,6 +54,7 @@ router.get('/customers', generalLimiter, async (req, res) => {
 });
 
 router.post('/push/send',    sensitiveLimit, validate(sendPushSchema), pushCtrl.sendPush);
+router.get ('/qr', generalLimiter, qrCtrl.getBusinessQR);
 router.get ('/push/history', generalLimiter,                           pushCtrl.pushHistory);
 
 router.get('/fraud/logs', sensitiveLimit, async (req, res) => {

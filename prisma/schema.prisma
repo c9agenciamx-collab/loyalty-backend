@@ -39,6 +39,7 @@ model Business {
   stamps        Stamp[]
   pushMessages  PushMessage[]
   fraudLogs     FraudLog[]
+  businessQr    BusinessQR?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   @@map("businesses")
@@ -94,14 +95,14 @@ model Customer {
 }
 
 model CustomerSession {
-  id         String   @id @default(uuid())
-  customerId String
-  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  token      String   @unique
-  qrSecret   String
+  id          String   @id @default(uuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  token       String   @unique
+  qrSecret    String
   qrRotatedAt DateTime @default(now())
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
   @@map("customer_sessions")
 }
 
@@ -139,16 +140,16 @@ model Milestone {
 }
 
 model PushMessage {
-  id         String      @id @default(uuid())
-  businessId String
-  business   Business    @relation(fields: [businessId], references: [id])
-  title      String
-  body       String
-  segment    String      @default("all")
-  status     PushStatus  @default(PENDING)
-  sentAt     DateTime?
-  recipientCount Int     @default(0)
-  createdAt  DateTime    @default(now())
+  id             String     @id @default(uuid())
+  businessId     String
+  business       Business   @relation(fields: [businessId], references: [id])
+  title          String
+  body           String
+  segment        String     @default("all")
+  status         PushStatus @default(PENDING)
+  sentAt         DateTime?
+  recipientCount Int        @default(0)
+  createdAt      DateTime   @default(now())
   @@map("push_messages")
 }
 
@@ -179,4 +180,13 @@ enum FraudType {
   DUPLICATE_ACCOUNT
   SUSPICIOUS_PATTERN
   INVALID_QR
+}
+
+model BusinessQR {
+  id         String   @id @default(uuid())
+  businessId String   @unique
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  secret     String   @default(uuid())
+  rotatedAt  DateTime @default(now())
+  @@map("business_qr")
 }
