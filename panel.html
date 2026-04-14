@@ -61,7 +61,7 @@ body{background:#f7f5f2}
 /* QR SCANNER PAGE */
 .qr-page{background:#1a1a1a;min-height:calc(100vh - 100px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;gap:20px;}
 .qr-title{color:#fff;font-size:14px;font-weight:600;text-align:center;opacity:0.7;}
-.qr-box{background:#fff;border-radius:20px;padding:20px;display:flex;align-items:center;justify-content:center;}
+.qr-box{background:#fff;border-radius:20px;padding:20px;display:flex;align-items:center;justify-content:center;width:440px;height:440px;}
 .qr-timer{display:flex;flex-direction:column;align-items:center;gap:6px;}
 .qr-timer-bar-bg{width:200px;height:6px;background:rgba(255,255,255,0.2);border-radius:3px;overflow:hidden;}
 .qr-timer-bar{height:6px;background:#f5c518;border-radius:3px;transition:width 1s linear;}
@@ -233,7 +233,7 @@ function renderQR(secret){
   el.innerHTML='';
   qrInstance=new QRCode(el,{
     text: secret,
-    width:220, height:220,
+    width:400, height:400,
     colorDark:'#1a1a1a', colorLight:'#ffffff',
     correctLevel: QRCode.CorrectLevel.M
   });
