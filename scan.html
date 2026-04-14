@@ -4,13 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Escanear sello</title>
-<script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:#0f0f0f;color:#fff;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:16px;}
 .title{font-size:15px;color:#f5c518;font-weight:700;text-align:center;}
 .frame{position:relative;width:300px;height:300px;border-radius:16px;overflow:hidden;background:#111;}
 #video{width:100%;height:100%;object-fit:cover;display:block;}
+#canvas{display:none;}
 .corner{position:absolute;width:44px;height:44px;border-color:#f5c518;border-style:solid;}
 .tl{top:0;left:0;border-width:4px 0 0 4px;border-radius:8px 0 0 0;}
 .tr{top:0;right:0;border-width:4px 4px 0 0;border-radius:0 8px 0 0;}
@@ -37,7 +38,8 @@ body{background:#0f0f0f;color:#fff;font-family:'Segoe UI',sans-serif;min-height:
 <div class="title">Apunta al QR del cajero</div>
 
 <div class="frame" id="frame">
-  <video id="video" playsinline></video>
+  <video id="video" playsinline autoplay muted></video>
+  <canvas id="canvas"></canvas>
   <div class="corner tl"></div>
   <div class="corner tr"></div>
   <div class="corner bl"></div>
@@ -66,35 +68,57 @@ body{background:#0f0f0f;color:#fff;font-family:'Segoe UI',sans-serif;min-height:
 const API = 'https://loyalty-backend-production-204b.up.railway.app/api';
 const params = new URLSearchParams(window.location.search);
 const token = params.get('token') || localStorage.getItem('customerToken') || '';
-let codeReader = null;
-let scanned = false;
+let stream = null, scanInterval = null, scanned = false;
 
 async function start() {
   try {
-    codeReader = new ZXing.BrowserQRCodeReader();
-    const videoInputDevices = await ZXing.BrowserCodeReader.listVideoInputDevices();
-    
-    // Usar cámara trasera si está disponible
-    const selectedDeviceId = videoInputDevices.find(d => 
-      d.label.toLowerCase().includes('back') || 
-      d.label.toLowerCase().includes('rear') ||
-      d.label.toLowerCase().includes('trasera')
-    )?.deviceId || videoInputDevices[videoInputDevices.length - 1]?.deviceId;
-
-    codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
-      if (result && !scanned) {
-        scanned = true;
-        stopCamera();
-        submitScan(result.getText().trim());
+    // iOS Safari requiere exactamente este formato
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: {
+        facingMode: { ideal: 'environment' }
       }
     });
+    const video = document.getElementById('video');
+    video.srcObject = stream;
+    video.setAttribute('playsinline', true);
+    video.play();
+    video.addEventListener('loadedmetadata', () => {
+      scanInterval = setInterval(scanFrame, 250);
+    });
   } catch(e) {
-    showError('No se pudo acceder a la cámara. Permite el acceso e intenta de nuevo.');
+    showError('No se pudo acceder a la cámara: ' + e.message);
+  }
+}
+
+function scanFrame() {
+  if (scanned) return;
+  const video = document.getElementById('video');
+  if (!video.videoWidth) return;
+
+  const canvas = document.getElementById('canvas');
+  const size = Math.min(video.videoWidth, video.videoHeight);
+  const offsetX = (video.videoWidth - size) / 2;
+  const offsetY = (video.videoHeight - size) / 2;
+
+  canvas.width = 400;
+  canvas.height = 400;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, offsetX, offsetY, size, size, 0, 0, 400, 400);
+
+  const imageData = ctx.getImageData(0, 0, 400, 400);
+  const code = jsQR(imageData.data, 400, 400, { inversionAttempts: 'attemptBoth' });
+
+  if (code && code.data && code.data.length > 10) {
+    scanned = true;
+    stopCamera();
+    submitScan(code.data.trim());
   }
 }
 
 function stopCamera() {
-  if (codeReader) { try { codeReader.reset(); } catch(e){} }
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
   document.getElementById('scanline').style.display = 'none';
   document.getElementById('frame').style.opacity = '0.3';
   document.getElementById('status').textContent = 'Procesando...';
@@ -141,7 +165,7 @@ function showError(msg) {
   const el = document.getElementById('errorBox');
   el.textContent = msg;
   el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 3000);
+  setTimeout(() => el.classList.remove('show'), 4000);
 }
 
 start();
