@@ -11,6 +11,8 @@ const router = Router();
 router.post('/:businessSlug/register', authLimiter, validate(registerCustomerSchema), customerCtrl.registerCustomer);
 router.post('/:businessSlug/login',    authLimiter, validate(z.object({ cardCode: z.string().regex(/^LC-\d{4}-\d{5}$/) })), customerCtrl.loginCustomer);
 router.get ('/card',    generalLimiter, requireCustomer, customerCtrl.getCard);
+router.post('/push/subscribe', generalLimiter, requireCustomer, customerCtrl.subscribePush);
+router.post('/push/subscribe', generalLimiter, requireCustomer, customerCtrl.subscribePush);
 router.patch('/wallet', generalLimiter, requireCustomer, validate(z.object({ walletType: z.enum(['apple','google','android','wa']) })), customerCtrl.updateWallet);
 
 export default router;
