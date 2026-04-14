@@ -27,7 +27,8 @@ body{background:#f7f5f2}
 .rb.on{display:block}
 .ra{display:flex;gap:7px;margin-top:10px}
 .bg{flex:1;padding:8px;background:#f5c518;color:#1a1a1a;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer}
-.br{flex:1;padding:8px;background:#fff;color:#1a1a1a;border:1px solid #e8e6e0;border-radius:7px;font-size:12px;cursor:pointer}
+.br{flex:1;padding:8px;background:#fff;color:#1a1a1a;border:1px solid #e8e6e0;border-radius:7px;font-size:12px;cursor:pointer;font-weight:600}
+.br:hover{border-color:#1a1a1a}
 .msg{padding:9px 12px;border-radius:7px;font-size:12px;margin-top:8px;display:none}
 .msg.ok{background:#dcfce7;color:#166534;display:block}
 .msg.err{background:#fee2e2;color:#991b1b;display:block}
@@ -37,6 +38,26 @@ body{background:#f7f5f2}
 .cm{font-size:11px;color:#888;margin-top:1px}
 .cst{font-size:12px;font-weight:700;margin-left:auto}
 .pg{display:none}.pg.on{display:block}
+
+/* PRIZES */
+.prize-list{margin-top:12px;display:none;flex-direction:column;gap:6px}
+.prize-list.on{display:flex}
+.pi{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1.5px solid #e8e6e0;border-radius:8px;cursor:pointer;transition:all .15s}
+.pi:hover{border-color:#f5c518;background:#fffdf0}
+.pi.sel{border-color:#f5c518;background:#fffdf0}
+.pi-name{font-size:13px;font-weight:600}
+.pi-sub{font-size:11px;color:#888;margin-top:1px}
+.pi-check{width:20px;height:20px;border-radius:50%;border:2px solid #e8e6e0;transition:all .15s;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.pi.sel .pi-check{background:#f5c518;border-color:#f5c518;color:#1a1a1a}
+
+/* CONFIRM */
+.confirm-box{background:#fffdf0;border:1.5px solid #f5c518;border-radius:8px;padding:12px;margin-top:10px;display:none}
+.confirm-box.on{display:block}
+.confirm-title{font-size:13px;font-weight:600;margin-bottom:3px}
+.confirm-sub{font-size:12px;color:#888;margin-bottom:10px}
+.confirm-row{display:flex;gap:7px}
+.btn-confirm{flex:1;padding:8px;background:#22c55e;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer}
+.btn-cancel{flex:1;padding:8px;background:#fff;color:#1a1a1a;border:1px solid #e8e6e0;border-radius:7px;font-size:12px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -56,24 +77,39 @@ body{background:#f7f5f2}
     </div>
     <div class="sec"><div id="st" style="font-size:13px;color:#888">Cargando...</div></div>
   </div>
+
   <div class="pg" id="pg-sel">
     <div class="sec">
       <div class="st">Dar sello a cliente</div>
       <div class="sf">
-        <input class="si" id="ci" placeholder="Código LC-2026-00001 o nombre">
+        <input class="si" id="ci" placeholder="Código LC-2026-00001 o nombre" onkeydown="if(event.key==='Enter')buscar()">
         <button class="sb" onclick="buscar()">Buscar</button>
       </div>
       <div class="rb" id="rb">
         <div style="font-weight:600" id="rn"></div>
         <div style="font-size:11px;color:#888;margin-top:3px" id="rs"></div>
         <div class="ra">
-          <button class="bg" onclick="sello()">+ Dar Sello</button>
-          <button class="br">Canjear Premio</button>
+          <button class="bg" onclick="sello()" id="btnSello">+ Dar Sello</button>
+          <button class="br" onclick="togglePremios()" id="btnCanjear">🎁 Canjear Premio</button>
+        </div>
+
+        <!-- LISTA PREMIOS -->
+        <div class="prize-list" id="prizeList"></div>
+
+        <!-- CONFIRMAR -->
+        <div class="confirm-box" id="confirmBox">
+          <div class="confirm-title">¿Confirmar canje?</div>
+          <div class="confirm-sub" id="confirmSub"></div>
+          <div class="confirm-row">
+            <button class="btn-cancel" onclick="cancelCanje()">Cancelar</button>
+            <button class="btn-confirm" onclick="confirmarCanje()" id="btnConfirm">Confirmar</button>
+          </div>
         </div>
       </div>
       <div class="msg" id="sm"></div>
     </div>
   </div>
+
   <div class="pg" id="pg-cli">
     <div class="sec">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div class="st" id="ct" style="margin:0;">Clientes</div><button onclick="exportar()" style="padding:8px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;">⬇ Exportar CSV</button></div>
@@ -81,14 +117,13 @@ body{background:#f7f5f2}
     </div>
   </div>
 </div>
+
 <script>
 const API='https://loyalty-backend-production-204b.up.railway.app';
-let T='',cur=null,cls=[];
+let T='',cur=null,cls=[],milestones=[],selMilestone=null;
 
-// Leer token de la URL
 const params=new URLSearchParams(window.location.search);
 T=params.get('token')||'';
-console.log('TOKEN EN URL:', T ? T.substring(0,20)+'...' : 'VACIO');
 
 async function load(){
   if(!T){document.getElementById('st').textContent='Sin token — vuelve a hacer login';return;}
@@ -96,6 +131,7 @@ async function load(){
     const rb=await fetch(API+'/api/admin/business',{headers:{Authorization:'Bearer '+T}});
     const db=await rb.json();
     if(rb.ok){document.getElementById('bizname').textContent=db.name||'Panel del negocio';}
+
     const r=await fetch(API+'/api/admin/stats/dashboard',{headers:{Authorization:'Bearer '+T}});
     const d=await r.json();
     if(!r.ok){document.getElementById('st').textContent='Error: '+d.error;return;}
@@ -105,10 +141,15 @@ async function load(){
     document.getElementById('me').textContent=d.metrics.emailCount;
     document.getElementById('st').textContent='✅ Sistema funcionando correctamente';
     document.getElementById('st').style.color='#166534';
+
+    // Cargar milestones
+    const rm=await fetch(API+'/api/admin/rewards/active',{headers:{Authorization:'Bearer '+T}});
+    if(rm.ok){const dm=await rm.json();milestones=dm.milestones||[];}
+
     const r2=await fetch(API+'/api/admin/customers?limit=100',{headers:{Authorization:'Bearer '+T}});
     const d2=await r2.json();
     cls=d2.customers||[];
-    document.getElementById('ct').textContent=d2.total+' clientes registrados';
+    document.getElementById('ct').textContent=(d2.total||cls.length)+' clientes registrados';
     document.getElementById('cl').innerHTML=cls.map(c=>{
       const i=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       return'<div class="cr"><div class="ca">'+i+'</div><div><div class="cn">'+c.name+'</div><div class="cm">'+c.cardCode+' · '+(c.email||'Sin email')+'</div></div><div class="cst">'+c.totalStamps+' ★</div></div>';
@@ -126,32 +167,107 @@ function pg(n,el){
 function buscar(){
   const s=document.getElementById('ci').value.trim().toUpperCase();
   const f=cls.find(c=>c.cardCode===s||c.name.toUpperCase().includes(s));
-  if(f){cur=f;document.getElementById('rn').textContent=f.name;document.getElementById('rs').textContent=f.totalStamps+' sellos · '+f.cardCode;document.getElementById('rb').classList.add('on');document.getElementById('sm').className='msg';}
-  else msg('Cliente no encontrado','err');
+  if(f){
+    cur=f;
+    document.getElementById('rn').textContent=f.name;
+    document.getElementById('rs').textContent=f.totalStamps+' sellos · '+f.cardCode;
+    document.getElementById('rb').classList.add('on');
+    document.getElementById('sm').className='msg';
+    document.getElementById('prizeList').classList.remove('on');
+    document.getElementById('confirmBox').classList.remove('on');
+    document.getElementById('btnCanjear').textContent='🎁 Canjear Premio';
+    selMilestone=null;
+  } else {
+    msg('Cliente no encontrado','err');
+  }
 }
 
 async function sello(){
   if(!cur||!T)return;
+  const btn=document.getElementById('btnSello');
+  btn.disabled=true;btn.textContent='Dando...';
   try{
     const r=await fetch(API+'/api/admin/stamps/give',{method:'POST',headers:{Authorization:'Bearer '+T,'Content-Type':'application/json'},body:JSON.stringify({cardCode:cur.cardCode,method:'MANUAL'})});
     const d=await r.json();
-    if(d.ok){cur.totalStamps++;document.getElementById('rs').textContent=cur.totalStamps+' sellos · '+cur.cardCode;msg('✅ Sello dado a '+cur.name,'ok');}
-    else msg('❌ '+(d.error||'Error'),'err');
+    if(d.ok){
+      cur.totalStamps=d.customer.totalStamps;
+      document.getElementById('rs').textContent=cur.totalStamps+' sellos · '+cur.cardCode;
+      // actualizar en lista local
+      const idx=cls.findIndex(c=>c.cardCode===cur.cardCode);
+      if(idx>=0)cls[idx].totalStamps=cur.totalStamps;
+      let txt='✅ Sello dado a '+cur.name;
+      if(d.milestonesReached&&d.milestonesReached.length>0)txt+=' · 🎉 Premio alcanzado: '+d.milestonesReached[0].prizeName;
+      msg(txt,'ok');
+    } else msg('❌ '+(d.error||'Error'),'err');
   }catch(e){msg('Error: '+e.message,'err');}
+  btn.disabled=false;btn.textContent='+ Dar Sello';
 }
 
-function msg(t,c){const e=document.getElementById('sm');e.textContent=t;e.className='msg '+c;}
+function togglePremios(){
+  const list=document.getElementById('prizeList');
+  const isOpen=list.classList.contains('on');
+  if(isOpen){
+    list.classList.remove('on');
+    document.getElementById('confirmBox').classList.remove('on');
+    document.getElementById('btnCanjear').textContent='🎁 Canjear Premio';
+    selMilestone=null;
+    return;
+  }
+  const canjes=milestones.filter(m=>cur.totalStamps>=m.atStamp);
+  if(!canjes.length){msg('El cliente no tiene sellos suficientes para ningún premio','err');return;}
+  list.innerHTML=canjes.map(m=>`
+    <div class="pi" id="pi-${m.id}" onclick="selectPremio('${m.id}','${m.prizeName}',${m.atStamp})">
+      <div><div class="pi-name">🎁 ${m.prizeName}</div><div class="pi-sub">Requiere ${m.atStamp} sellos</div></div>
+      <div class="pi-check" id="chk-${m.id}"></div>
+    </div>
+  `).join('');
+  list.classList.add('on');
+  document.getElementById('btnCanjear').textContent='✕ Cerrar';
+}
+
+function selectPremio(id,name,atStamp){
+  document.querySelectorAll('.pi').forEach(e=>e.classList.remove('sel'));
+  document.getElementById('pi-'+id).classList.add('sel');
+  selMilestone={id,name,atStamp};
+  document.getElementById('confirmSub').textContent=cur.name+' · '+name+' (sello '+atStamp+')';
+  document.getElementById('confirmBox').classList.add('on');
+}
+
+function cancelCanje(){
+  selMilestone=null;
+  document.getElementById('confirmBox').classList.remove('on');
+  document.querySelectorAll('.pi').forEach(e=>e.classList.remove('sel'));
+}
+
+async function confirmarCanje(){
+  if(!selMilestone||!cur)return;
+  const btn=document.getElementById('btnConfirm');
+  btn.disabled=true;btn.textContent='Canjeando...';
+  try{
+    const r=await fetch(API+'/api/admin/stamps/redeem',{method:'POST',headers:{Authorization:'Bearer '+T,'Content-Type':'application/json'},body:JSON.stringify({cardCode:cur.cardCode,milestoneId:selMilestone.id})});
+    const d=await r.json();
+    if(d.ok){
+      document.getElementById('prizeList').classList.remove('on');
+      document.getElementById('confirmBox').classList.remove('on');
+      document.getElementById('btnCanjear').textContent='🎁 Canjear Premio';
+      selMilestone=null;
+      msg('✅ Premio canjeado: '+d.redeemed.prizeName+' para '+d.customer.name,'ok');
+    } else msg('❌ '+(d.error||'Error al canjear'),'err');
+  }catch(e){msg('Error: '+e.message,'err');}
+  btn.disabled=false;btn.textContent='Confirmar';
+}
+
+function msg(t,c){const e=document.getElementById('sm');e.textContent=t;e.className='msg '+c;setTimeout(()=>e.className='msg',5000);}
+
+async function exportar(){window.open(API+'/api/admin/export/download?token='+T,'_blank');}
+
+function cerrarSesion(){
+  localStorage.removeItem('adminToken');
+  localStorage.removeItem('businessId');
+  window.parent.postMessage({goTo:'/admin-login'},'*');
+}
 
 load();
-async function exportar(){
-  const url='https://loyalty-backend-production-204b.up.railway.app/api/admin/export/download?token='+T;
-  window.open(url,'_blank');
-}
-function cerrarSesion(){
-localStorage.removeItem("adminToken");
-localStorage.removeItem("businessId");
-window.parent.postMessage({goTo:"/admin-login"},"*");
-}
 </script>
 </body>
 </html>
