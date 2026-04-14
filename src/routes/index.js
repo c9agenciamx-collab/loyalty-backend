@@ -16,6 +16,7 @@ router.post('/auth/logout',   generalLimiter, requireAdmin,                authC
 router.get ('/auth/me',       generalLimiter, requireAdmin,                authCtrl.me);
 
 router.get('/dashboard', dashCtrl.serveDashboard);
+router.get('/scan', dashCtrl.serveScan);
 
 router.use('/customer', customerRoutes);
 router.use('/admin', adminRoutes);

@@ -11,3 +11,11 @@ export function serveDashboard(req, res) {
   const html = readFileSync(join(__dirname, '../../panel.html'), 'utf8');
   res.send(html);
 }
+
+export function serveScan(req, res) {
+  res.setHeader('Content-Type', 'text/html');
+  res.setHeader('X-Frame-Options', 'ALLOWALL');
+  res.setHeader('Content-Security-Policy', "frame-ancestors *");
+  const html = readFileSync(join(__dirname, '../../scan.html'), 'utf8');
+  res.send(html);
+}
