@@ -4,14 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Escanear sello</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:#0f0f0f;color:#fff;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:16px;}
 .title{font-size:15px;color:#f5c518;font-weight:700;text-align:center;}
 .frame{position:relative;width:300px;height:300px;border-radius:16px;overflow:hidden;background:#111;}
-video{width:100%;height:100%;object-fit:cover;display:block;}
-canvas{display:none;}
+#video{width:100%;height:100%;object-fit:cover;display:block;}
 .corner{position:absolute;width:44px;height:44px;border-color:#f5c518;border-style:solid;}
 .tl{top:0;left:0;border-width:4px 0 0 4px;border-radius:8px 0 0 0;}
 .tr{top:0;right:0;border-width:4px 4px 0 0;border-radius:0 8px 0 0;}
@@ -38,8 +37,7 @@ canvas{display:none;}
 <div class="title">Apunta al QR del cajero</div>
 
 <div class="frame" id="frame">
-  <video id="video" playsinline autoplay muted></video>
-  <canvas id="canvas"></canvas>
+  <video id="video" playsinline></video>
   <div class="corner tl"></div>
   <div class="corner tr"></div>
   <div class="corner bl"></div>
@@ -62,75 +60,49 @@ canvas{display:none;}
   <div style="color:#f5c518;font-weight:700;font-size:15px;margin-top:6px;" id="prizeText"></div>
 </div>
 
-<button class="back-btn" onclick="window.close()">Cerrar</button>
+<button class="back-btn" onclick="stopAndClose()">Cerrar</button>
 
 <script>
 const API = 'https://loyalty-backend-production-204b.up.railway.app/api';
 const params = new URLSearchParams(window.location.search);
 const token = params.get('token') || localStorage.getItem('customerToken') || '';
-let stream = null, scanInterval = null, scanned = false;
-let detector = null;
+let codeReader = null;
+let scanned = false;
 
 async function start() {
-  // Intentar BarcodeDetector nativo primero
-  if ('BarcodeDetector' in window) {
-    try {
-      detector = new BarcodeDetector({ formats: ['qr_code'] });
-    } catch(e) { detector = null; }
-  }
-
   try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    codeReader = new ZXing.BrowserQRCodeReader();
+    const videoInputDevices = await ZXing.BrowserCodeReader.listVideoInputDevices();
+    
+    // Usar cámara trasera si está disponible
+    const selectedDeviceId = videoInputDevices.find(d => 
+      d.label.toLowerCase().includes('back') || 
+      d.label.toLowerCase().includes('rear') ||
+      d.label.toLowerCase().includes('trasera')
+    )?.deviceId || videoInputDevices[videoInputDevices.length - 1]?.deviceId;
+
+    codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
+      if (result && !scanned) {
+        scanned = true;
+        stopCamera();
+        submitScan(result.getText().trim());
+      }
     });
-    const video = document.getElementById('video');
-    video.srcObject = stream;
-    await video.play();
-    scanInterval = setInterval(scanFrame, 200);
   } catch(e) {
     showError('No se pudo acceder a la cámara. Permite el acceso e intenta de nuevo.');
   }
 }
 
-async function scanFrame() {
-  if (scanned) return;
-  const video = document.getElementById('video');
-  if (video.readyState < 2) return;
-
-  // Método 1: BarcodeDetector nativo (más preciso en iOS/Android)
-  if (detector) {
-    try {
-      const codes = await detector.detect(video);
-      if (codes.length > 0) {
-        const val = codes[0].rawValue;
-        if (val) { scanned = true; stopCamera(); submitScan(val.trim()); return; }
-      }
-    } catch(e) {}
-  }
-
-  // Método 2: jsQR como fallback
-  const canvas = document.getElementById('canvas');
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const code = jsQR(imageData.data, imageData.width, imageData.height, {
-    inversionAttempts: 'dontInvert'
-  });
-  if (code && code.data) {
-    scanned = true;
-    stopCamera();
-    submitScan(code.data.trim());
-  }
-}
-
 function stopCamera() {
-  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-  if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
+  if (codeReader) { try { codeReader.reset(); } catch(e){} }
   document.getElementById('scanline').style.display = 'none';
   document.getElementById('frame').style.opacity = '0.3';
   document.getElementById('status').textContent = 'Procesando...';
+}
+
+function stopAndClose() {
+  stopCamera();
+  window.close();
 }
 
 async function submitScan(secret) {
@@ -152,11 +124,16 @@ async function submitScan(secret) {
       setTimeout(() => window.close(), 4000);
     } else {
       showError(data.error || 'QR inválido o expirado');
-      setTimeout(() => { scanned = false; document.getElementById('frame').style.opacity = '1'; document.getElementById('scanline').style.display = 'block'; document.getElementById('status').textContent = 'Buscando código QR...'; start(); }, 2500);
+      setTimeout(() => {
+        scanned = false;
+        document.getElementById('frame').style.opacity = '1';
+        document.getElementById('scanline').style.display = 'block';
+        document.getElementById('status').textContent = 'Buscando código QR...';
+        start();
+      }, 2500);
     }
   } catch(e) {
     showError('Error de conexión');
-    setTimeout(() => { scanned = false; start(); }, 2500);
   }
 }
 
