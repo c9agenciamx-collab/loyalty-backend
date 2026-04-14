@@ -5,13 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Panel Loyalty</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:sans-serif}
 body{background:#f7f5f2}
-.hdr{background:#1a1a1a;padding:14px 20px;color:#f5c518;font-weight:800;font-size:16px}
-.hdr span{display:block;font-size:12px;color:rgba(255,255,255,0.6);font-weight:400;margin-top:2px}
-.nav{background:#fff;border-bottom:1px solid #e8e6e0;display:flex;padding:0 20px}
-.ni{padding:12px 16px;font-size:13px;color:#888;cursor:pointer;border-bottom:2px solid transparent}
+.hdr{background:#1a1a1a;padding:14px 20px;color:#f5c518;font-weight:800;font-size:16px;display:flex;justify-content:space-between;align-items:center;}
+.hdr-left{display:flex;flex-direction:column;}
+.hdr span{font-size:12px;color:rgba(255,255,255,0.6);font-weight:400;margin-top:2px;}
+.nav{background:#fff;border-bottom:1px solid #e8e6e0;display:flex;padding:0 20px;overflow-x:auto;}
+.ni{padding:12px 16px;font-size:13px;color:#888;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
 .ni.on{color:#1a1a1a;font-weight:600;border-bottom-color:#1a1a1a}
 .main{padding:20px}
 .mets{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
@@ -55,22 +57,39 @@ body{background:#f7f5f2}
 .confirm-row{display:flex;gap:7px}
 .btn-confirm{flex:1;padding:8px;background:#22c55e;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer}
 .btn-cancel{flex:1;padding:8px;background:#fff;color:#1a1a1a;border:1px solid #e8e6e0;border-radius:7px;font-size:12px;cursor:pointer}
-.scanner-box{display:none;margin-bottom:12px;border-radius:10px;overflow:hidden;position:relative;background:#000;}
-.scanner-box.on{display:block}
-#qr-video{width:100%;max-height:240px;object-fit:cover;display:block;}
-.scanner-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:160px;height:160px;border:3px solid #f5c518;border-radius:12px;pointer-events:none;}
-.scanner-hint{text-align:center;font-size:11px;color:rgba(255,255,255,0.7);padding:6px;background:#111;}
-.btn-scan{padding:9px 14px;background:#f5c518;color:#1a1a1a;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
+
+/* QR SCANNER PAGE */
+.qr-page{background:#1a1a1a;min-height:calc(100vh - 100px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;gap:20px;}
+.qr-title{color:#fff;font-size:14px;font-weight:600;text-align:center;opacity:0.7;}
+.qr-box{background:#fff;border-radius:20px;padding:20px;display:flex;align-items:center;justify-content:center;}
+.qr-timer{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.qr-timer-bar-bg{width:200px;height:6px;background:rgba(255,255,255,0.2);border-radius:3px;overflow:hidden;}
+.qr-timer-bar{height:6px;background:#f5c518;border-radius:3px;transition:width 1s linear;}
+.qr-timer-text{font-size:11px;color:rgba(255,255,255,0.5);}
+.qr-hint{font-size:12px;color:rgba(255,255,255,0.4);text-align:center;max-width:260px;line-height:1.5;}
+.qr-success{background:#1a2e1a;border:2px solid #22c55e;border-radius:12px;padding:16px 24px;text-align:center;display:none;animation:pop .3s ease;}
+.qr-success.show{display:block;}
+.qr-success-name{font-size:18px;font-weight:700;color:#fff;margin-bottom:4px;}
+.qr-success-stamps{font-size:13px;color:#22c55e;}
+.qr-prize{background:#2e2200;border:2px solid #f5c518;border-radius:12px;padding:12px 20px;text-align:center;display:none;}
+.qr-prize.show{display:block;}
+@keyframes pop{from{transform:scale(0.8);opacity:0}to{transform:scale(1);opacity:1}}
 </style>
 </head>
 <body>
-<div class="hdr" style="display:flex;justify-content:space-between;align-items:center;">★ Loyalty<span id="bizname">Panel del negocio</span><button onclick="cerrarSesion()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:6px 12px;border-radius:7px;font-size:11px;cursor:pointer;">Cerrar sesión</button></div>
+<div class="hdr">
+  <div class="hdr-left">★ Loyalty<span id="bizname">Panel del negocio</span></div>
+  <button onclick="cerrarSesion()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:6px 12px;border-radius:7px;font-size:11px;cursor:pointer;">Cerrar sesión</button>
+</div>
 <div class="nav">
   <div class="ni on" onclick="pg('res',this)">Resumen</div>
+  <div class="ni" onclick="pg('qr',this);loadQR()">📷 Escáner</div>
   <div class="ni" onclick="pg('sel',this)">Dar Sellos</div>
   <div class="ni" onclick="pg('cli',this)">Clientes</div>
 </div>
 <div class="main">
+
+  <!-- RESUMEN -->
   <div class="pg on" id="pg-res">
     <div class="mets">
       <div class="met"><div class="ml">Clientes</div><div class="mv" id="mc">-</div><div class="ms">registrados</div></div>
@@ -81,22 +100,35 @@ body{background:#f7f5f2}
     <div class="sec"><div id="st" style="font-size:13px;color:#888">Cargando...</div></div>
   </div>
 
+  <!-- ESCÁNER QR NEGOCIO -->
+  <div class="pg" id="pg-qr">
+    <div class="qr-page">
+      <div class="qr-title">Muestra este código a tu cliente</div>
+      <div class="qr-box"><div id="business-qrcode"></div></div>
+      <div class="qr-timer">
+        <div class="qr-timer-bar-bg"><div class="qr-timer-bar" id="timerBar"></div></div>
+        <div class="qr-timer-text" id="timerText">Renovando en 60s</div>
+      </div>
+      <div class="qr-hint">El cliente escanea este QR desde su tarjeta en kivoloop.com. El código se renueva automáticamente.</div>
+      <div class="qr-success" id="qrSuccess">
+        <div class="qr-success-name" id="qrSuccessName"></div>
+        <div class="qr-success-stamps" id="qrSuccessStamps"></div>
+      </div>
+      <div class="qr-prize" id="qrPrize">
+        <div style="font-size:20px;">🎉</div>
+        <div style="color:#f5c518;font-weight:700;font-size:14px;margin-top:4px;" id="qrPrizeText"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAR SELLOS MANUAL -->
   <div class="pg" id="pg-sel">
     <div class="sec">
       <div class="st">Dar sello a cliente</div>
       <div class="sf">
         <input class="si" id="ci" placeholder="Código LC-2026-00001 o nombre" onkeydown="if(event.key==='Enter')buscar()">
         <button class="sb" onclick="buscar()">Buscar</button>
-        <button class="btn-scan" id="btnScan" onclick="toggleScanner()">📷 QR</button>
       </div>
-
-      <div class="scanner-box" id="scannerBox">
-        <video id="qr-video" playsinline></video>
-        <div class="scanner-overlay"></div>
-        <canvas id="qr-canvas" style="display:none;"></canvas>
-        <div class="scanner-hint">Apunta al código QR del cliente</div>
-      </div>
-
       <div class="rb" id="rb">
         <div style="font-weight:600" id="rn"></div>
         <div style="font-size:11px;color:#888;margin-top:3px" id="rs"></div>
@@ -118,18 +150,23 @@ body{background:#f7f5f2}
     </div>
   </div>
 
+  <!-- CLIENTES -->
   <div class="pg" id="pg-cli">
     <div class="sec">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div class="st" id="ct" style="margin:0;">Clientes</div><button onclick="exportar()" style="padding:8px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;">⬇ Exportar CSV</button></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div class="st" id="ct" style="margin:0;">Clientes</div>
+        <button onclick="exportar()" style="padding:8px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;">⬇ Exportar CSV</button>
+      </div>
       <div id="cl"></div>
     </div>
   </div>
+
 </div>
 
 <script>
 const API='https://loyalty-backend-production-204b.up.railway.app';
 let T='',cur=null,cls=[],milestones=[],selMilestone=null;
-let scanStream=null,scanInterval=null;
+let qrInterval=null,timerInterval=null,qrInstance=null,currentSecret=null,qrRotateSecs=60;
 
 const params=new URLSearchParams(window.location.search);
 T=params.get('token')||'';
@@ -139,7 +176,10 @@ async function load(){
   try{
     const rb=await fetch(API+'/api/admin/business',{headers:{Authorization:'Bearer '+T}});
     const db=await rb.json();
-    if(rb.ok){document.getElementById('bizname').textContent=db.name||'Panel del negocio';}
+    if(rb.ok){
+      document.getElementById('bizname').textContent=db.name||'Panel del negocio';
+      qrRotateSecs=db.qrRotateSecs||60;
+    }
     const r=await fetch(API+'/api/admin/stats/dashboard',{headers:{Authorization:'Bearer '+T}});
     const d=await r.json();
     if(!r.ok){document.getElementById('st').textContent='Error: '+d.error;return;}
@@ -167,55 +207,86 @@ function pg(n,el){
   document.querySelectorAll('.ni').forEach(x=>x.classList.remove('on'));
   document.getElementById('pg-'+n).classList.add('on');
   el.classList.add('on');
-  stopScanner();
+  if(n!=='qr')stopQR();
 }
 
-async function toggleScanner(){
-  const box=document.getElementById('scannerBox');
-  if(box.classList.contains('on')){stopScanner();return;}
+// ── QR NEGOCIO ──
+async function loadQR(){
+  stopQR();
+  await refreshQR();
+  qrInterval=setInterval(refreshQR, qrRotateSecs*1000);
+}
+
+async function refreshQR(){
   try{
-    scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-    const video=document.getElementById('qr-video');
-    video.srcObject=scanStream;
-    video.play();
-    box.classList.add('on');
-    document.getElementById('btnScan').textContent='✕ Cerrar';
-    scanInterval=setInterval(scanFrame,300);
-  }catch(e){
-    msg('No se pudo acceder a la cámara','err');
+    const r=await fetch(API+'/api/admin/qr',{headers:{Authorization:'Bearer '+T}});
+    const d=await r.json();
+    currentSecret=d.secret;
+    const secsLeft=d.expiresIn||qrRotateSecs;
+    renderQR(currentSecret);
+    startTimer(secsLeft);
+  }catch(e){console.error(e);}
+}
+
+function renderQR(secret){
+  const el=document.getElementById('business-qrcode');
+  el.innerHTML='';
+  qrInstance=new QRCode(el,{
+    text: secret,
+    width:220, height:220,
+    colorDark:'#1a1a1a', colorLight:'#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+}
+
+function startTimer(secsLeft){
+  if(timerInterval)clearInterval(timerInterval);
+  let secs=secsLeft;
+  updateTimer(secs);
+  timerInterval=setInterval(()=>{
+    secs--;
+    updateTimer(secs);
+    if(secs<=0){clearInterval(timerInterval);}
+  },1000);
+}
+
+function updateTimer(secs){
+  const pct=Math.max(0,(secs/qrRotateSecs)*100);
+  document.getElementById('timerBar').style.width=pct+'%';
+  document.getElementById('timerText').textContent='Renovando en '+Math.max(0,secs)+'s';
+  // Color cambia a rojo cuando queda poco
+  document.getElementById('timerBar').style.background=secs<=10?'#ef4444':'#f5c518';
+}
+
+function stopQR(){
+  if(qrInterval)clearInterval(qrInterval);
+  if(timerInterval)clearInterval(timerInterval);
+  qrInterval=null;timerInterval=null;
+}
+
+// Escuchar eventos de sello exitoso desde la tarjeta del cliente (postMessage)
+window.addEventListener('message',function(e){
+  if(e.data&&e.data.type==='STAMP_SUCCESS'){
+    const {customerName,totalStamps,prizes}=e.data;
+    const s=document.getElementById('qrSuccess');
+    document.getElementById('qrSuccessName').textContent='✅ '+customerName;
+    document.getElementById('qrSuccessStamps').textContent=totalStamps+' sellos acumulados';
+    s.classList.add('show');
+    setTimeout(()=>s.classList.remove('show'),4000);
+    if(prizes&&prizes.length>0){
+      const p=document.getElementById('qrPrize');
+      document.getElementById('qrPrizeText').textContent='🎉 Premio alcanzado: '+prizes[0].prizeName;
+      p.classList.add('show');
+      setTimeout(()=>p.classList.remove('show'),6000);
+    }
+    // Renovar QR inmediatamente después del escaneo
+    refreshQR();
   }
-}
+});
 
-function stopScanner(){
-  if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null;}
-  if(scanInterval){clearInterval(scanInterval);scanInterval=null;}
-  document.getElementById('scannerBox').classList.remove('on');
-  document.getElementById('btnScan').textContent='📷 QR';
-}
-
-function scanFrame(){
-  const video=document.getElementById('qr-video');
-  if(video.readyState!==video.HAVE_ENOUGH_DATA)return;
-  const canvas=document.getElementById('qr-canvas');
-  canvas.width=video.videoWidth;
-  canvas.height=video.videoHeight;
-  const ctx=canvas.getContext('2d');
-  ctx.drawImage(video,0,0,canvas.width,canvas.height);
-  const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
-  const code=jsQR(imageData.data,imageData.width,imageData.height);
-  if(code&&code.data){
-    stopScanner();
-    const cardCode=code.data.trim().toUpperCase();
-    document.getElementById('ci').value=cardCode;
-    buscarPorCodigo(cardCode);
-  }
-}
-
+// ── BÚSQUEDA MANUAL ──
 function buscar(){
-  buscarPorCodigo(document.getElementById('ci').value.trim().toUpperCase());
-}
-
-function buscarPorCodigo(s){
+  const s=document.getElementById('ci').value.trim().toUpperCase();
   const f=cls.find(c=>c.cardCode===s||c.name.toUpperCase().includes(s));
   if(f){
     cur=f;
