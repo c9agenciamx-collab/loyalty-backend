@@ -4,6 +4,8 @@ import cors from 'cors';
 export const helmetMiddleware = helmet({
   contentSecurityPolicy: false,
   hsts: false,
+  crossOriginOpenerPolicy: false,
+  crossOriginResourcePolicy: false,
 });
 
 export const corsMiddleware = cors({
