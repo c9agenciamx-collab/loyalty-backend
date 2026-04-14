@@ -78,6 +78,8 @@ router.get('/export/download', async (req, res) => {
     const rows = customers.map(c => [c.name, c.email||'', c.phone||'', c.cardCode, c.totalStamps, c.createdAt.toISOString().split('T')[0]].map(v => '"'+String(v).replace(/"/g,'""')+'"').join(','));
     const csv = [header, ...rows].join('\n');
     res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Content-Disposition', 'attachment; filename=clientes-kivo.csv');
     return res.send(csv);
   } catch(e) { return res.status(401).json({ error: 'Token inválido' }); }
