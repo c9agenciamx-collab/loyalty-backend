@@ -1,8 +1,7 @@
 export function serveDashboard(req, res) {
-  const token = req.query.token || '';
   res.setHeader('Content-Type', 'text/html');
   res.setHeader('X-Frame-Options', 'ALLOWALL');
-res.setHeader('Content-Security-Policy', "frame-ancestors *");
+  res.setHeader('Content-Security-Policy', "frame-ancestors *");
   res.send(`<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -13,6 +12,7 @@ res.setHeader('Content-Security-Policy', "frame-ancestors *");
 *{box-sizing:border-box;margin:0;padding:0;font-family:sans-serif}
 body{background:#f7f5f2}
 .hdr{background:#1a1a1a;padding:14px 20px;color:#f5c518;font-weight:800;font-size:16px}
+.hdr span{display:block;font-size:12px;color:rgba(255,255,255,0.6);font-weight:400;margin-top:2px}
 .nav{background:#fff;border-bottom:1px solid #e8e6e0;display:flex;padding:0 20px}
 .ni{padding:12px 16px;font-size:13px;color:#888;cursor:pointer;border-bottom:2px solid transparent}
 .ni.on{color:#1a1a1a;font-weight:600;border-bottom-color:#1a1a1a}
@@ -21,6 +21,7 @@ body{background:#f7f5f2}
 .met{background:#fff;border-radius:10px;padding:14px;border-left:4px solid #f5c518}
 .ml{font-size:10px;text-transform:uppercase;color:#888;margin-bottom:6px}
 .mv{font-size:26px;font-weight:800;color:#1a1a1a}
+.ms{font-size:11px;color:#22c55e;margin-top:3px}
 .sec{background:#fff;border-radius:10px;padding:18px;margin-bottom:14px}
 .st{font-size:13px;font-weight:600;margin-bottom:12px}
 .sf{display:flex;gap:8px;margin-bottom:12px}
@@ -38,12 +39,12 @@ body{background:#f7f5f2}
 .ca{width:34px;height:34px;border-radius:50%;background:#f5c518;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
 .cn{font-size:13px;font-weight:600}
 .cm{font-size:11px;color:#888;margin-top:1px}
-.cs{font-size:12px;font-weight:700;margin-left:auto}
+.cst{font-size:12px;font-weight:700;margin-left:auto}
 .pg{display:none}.pg.on{display:block}
 </style>
 </head>
 <body>
-<div class="hdr">★ Loyalty — Panel del negocio</div>
+<div class="hdr" style="display:flex;justify-content:space-between;align-items:center;">★ Loyalty<span id="bizname">Panel del negocio</span><button onclick="cerrarSesion()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;padding:6px 12px;border-radius:7px;font-size:11px;cursor:pointer;">Cerrar sesión</button></div>
 <div class="nav">
   <div class="ni on" onclick="pg('res',this)">Resumen</div>
   <div class="ni" onclick="pg('sel',this)">Dar Sellos</div>
@@ -52,16 +53,16 @@ body{background:#f7f5f2}
 <div class="main">
   <div class="pg on" id="pg-res">
     <div class="mets">
-      <div class="met"><div class="ml">Clientes</div><div class="mv" id="mc">-</div></div>
-      <div class="met"><div class="ml">Sellos hoy</div><div class="mv" id="ms">-</div></div>
-      <div class="met"><div class="ml">Premios</div><div class="mv" id="mp">-</div></div>
-      <div class="met"><div class="ml">Emails</div><div class="mv" id="me">-</div></div>
+      <div class="met"><div class="ml">Clientes</div><div class="mv" id="mc">-</div><div class="ms">registrados</div></div>
+      <div class="met"><div class="ml">Sellos hoy</div><div class="mv" id="mse">-</div><div class="ms">del día</div></div>
+      <div class="met"><div class="ml">Premios</div><div class="mv" id="mp">-</div><div class="ms">canjeados</div></div>
+      <div class="met"><div class="ml">Emails</div><div class="mv" id="me">-</div><div class="ms">registrados</div></div>
     </div>
-    <div class="sec"><div class="st" id="st">Cargando...</div></div>
+    <div class="sec"><div id="st" style="font-size:13px;color:#888">Cargando...</div></div>
   </div>
   <div class="pg" id="pg-sel">
     <div class="sec">
-      <div class="st">Dar sello</div>
+      <div class="st">Dar sello a cliente</div>
       <div class="sf">
         <input class="si" id="ci" placeholder="Código LC-2026-00001 o nombre">
         <button class="sb" onclick="buscar()">Buscar</button>
@@ -71,7 +72,7 @@ body{background:#f7f5f2}
         <div style="font-size:11px;color:#888;margin-top:3px" id="rs"></div>
         <div class="ra">
           <button class="bg" onclick="sello()">+ Dar Sello</button>
-          <button class="br">Canjear</button>
+          <button class="br">Canjear Premio</button>
         </div>
       </div>
       <div class="msg" id="sm"></div>
@@ -79,37 +80,43 @@ body{background:#f7f5f2}
   </div>
   <div class="pg" id="pg-cli">
     <div class="sec">
-      <div class="st" id="ct">Clientes</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div class="st" id="ct" style="margin:0;">Clientes</div><button onclick="exportar()" style="padding:8px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;">⬇ Exportar CSV</button></div>
       <div id="cl"></div>
     </div>
   </div>
 </div>
 <script>
 const API='https://loyalty-backend-production-204b.up.railway.app';
-const T='${token}';
-let cur=null,cls=[];
+let T='',cur=null,cls=[];
+
+// Leer token de la URL
+const params=new URLSearchParams(window.location.search);
+T=params.get('token')||'';
 
 async function load(){
+  if(!T){document.getElementById('st').textContent='Sin token — vuelve a hacer login';return;}
   try{
+    const rb=await fetch(API+'/api/admin/business',{headers:{Authorization:'Bearer '+T}});
+    const db=await rb.json();
+    if(rb.ok){document.getElementById('bizname').textContent=db.name||'Panel del negocio';}
     const r=await fetch(API+'/api/admin/stats/dashboard',{headers:{Authorization:'Bearer '+T}});
     const d=await r.json();
+    if(!r.ok){document.getElementById('st').textContent='Error: '+d.error;return;}
     document.getElementById('mc').textContent=d.metrics.totalCustomers;
-    document.getElementById('ms').textContent=d.metrics.stampsToday;
+    document.getElementById('mse').textContent=d.metrics.stampsToday;
     document.getElementById('mp').textContent=d.metrics.rewardsTotal;
     document.getElementById('me').textContent=d.metrics.emailCount;
     document.getElementById('st').textContent='✅ Sistema funcionando correctamente';
+    document.getElementById('st').style.color='#166534';
     const r2=await fetch(API+'/api/admin/customers?limit=100',{headers:{Authorization:'Bearer '+T}});
     const d2=await r2.json();
     cls=d2.customers||[];
     document.getElementById('ct').textContent=d2.total+' clientes registrados';
-    const cl=document.getElementById('cl');
-    cl.innerHTML=cls.map(c=>{
+    document.getElementById('cl').innerHTML=cls.map(c=>{
       const i=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-      return '<div class="cr"><div class="ca">'+i+'</div><div><div class="cn">'+c.name+'</div><div class="cm">'+c.cardCode+' · '+(c.email||'Sin email')+'</div></div><div class="cs">'+c.totalStamps+' ★</div></div>';
+      return'<div class="cr"><div class="ca">'+i+'</div><div><div class="cn">'+c.name+'</div><div class="cm">'+c.cardCode+' · '+(c.email||'Sin email')+'</div></div><div class="cst">'+c.totalStamps+' ★</div></div>';
     }).join('');
-  }catch(e){
-    document.getElementById('st').textContent='Error: '+e.message;
-  }
+  }catch(e){document.getElementById('st').textContent='Error: '+e.message;}
 }
 
 function pg(n,el){
@@ -127,7 +134,7 @@ function buscar(){
 }
 
 async function sello(){
-  if(!cur)return;
+  if(!cur||!T)return;
   try{
     const r=await fetch(API+'/api/admin/stamps/give',{method:'POST',headers:{Authorization:'Bearer '+T,'Content-Type':'application/json'},body:JSON.stringify({cardCode:cur.cardCode,method:'MANUAL'})});
     const d=await r.json();
@@ -139,6 +146,14 @@ async function sello(){
 function msg(t,c){const e=document.getElementById('sm');e.textContent=t;e.className='msg '+c;}
 
 load();
+async function exportar(){
+  window.parent.postMessage({openPanel:true},'*');
+}
+function cerrarSesion(){
+localStorage.removeItem("adminToken");
+localStorage.removeItem("businessId");
+window.parent.postMessage({goTo:"/admin-login"},"*");
+}
 </script>
 </body>
 </html>`);
