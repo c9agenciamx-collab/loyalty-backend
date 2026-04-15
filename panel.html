@@ -240,7 +240,7 @@ async function load(){
     document.getElementById('ct').textContent=(d2.total||cls.length)+' clientes registrados';
     document.getElementById('cl').innerHTML=cls.map(c=>{
       const i=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-      return`<div class="cr"><div class="ca">${i}</div><div style="flex:1;min-width:0;"><div class="cn">${c.name}</div><div class="cm">${c.cardCode}</div><div class="cm">${c.email||'Sin email'}</div></div><div class="cst">${c.totalStamps}<br>★</div></div>`;
+      return`<div class="cr"><div class="ca">${i}</div><div style="flex:1;min-width:0;"><div class="cn">${c.name}</div><div class="cm">${c.cardCode}</div><div class="cm">${c.email||'Sin email'}</div></div><div class="cst">${c.totalStamps}<br>★</div><button onclick="darDeBaja('${c.id}','${c.name}')" style="margin-left:8px;padding:6px 10px;background:transparent;border:1px solid rgba(239,68,68,0.4);color:#ef4444;border-radius:8px;font-size:11px;cursor:pointer;flex-shrink:0;font-family:'Outfit',sans-serif;white-space:nowrap;">✕ Baja</button></div>`;
     }).join('');
   }catch(e){document.getElementById('st').textContent='Error: '+e.message;}
 }
@@ -370,6 +370,23 @@ async function confirmarCanje(){
 function msg(t,c){const e=document.getElementById('sm');e.textContent=t;e.className='msg '+c;setTimeout(()=>e.className='msg',5000);}
 async function exportar(){window.open(API+'/api/admin/export/download?token='+T,'_blank');}
 function cerrarSesion(){localStorage.removeItem('adminToken');localStorage.removeItem('businessId');window.parent.postMessage({goTo:'/admin-login'},'*');}
+
+
+async function darDeBaja(id, name){
+  if(!confirm('¿Dar de baja a ' + name + '?')) return;
+  try{
+    const r=await fetch(API+'/api/admin/customers/'+id,{method:'DELETE',headers:{Authorization:'Bearer '+T}});
+    const d=await r.json();
+    if(d.ok){
+      cls=cls.filter(c=>c.id!==id);
+      document.getElementById('ct').textContent=cls.length+' clientes registrados';
+      document.getElementById('cl').innerHTML=cls.map(c=>{
+        const i=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+        return`<div class="cr"><div class="ca">${i}</div><div style="flex:1;min-width:0;"><div class="cn">${c.name}</div><div class="cm">${c.cardCode}</div><div class="cm">${c.email||'Sin email'}</div></div><div class="cst">${c.totalStamps}<br>★</div><button onclick="darDeBaja('${c.id}','${c.name}')" style="margin-left:8px;padding:6px 10px;background:transparent;border:1px solid rgba(239,68,68,0.4);color:#ef4444;border-radius:8px;font-size:11px;cursor:pointer;flex-shrink:0;font-family:'Outfit',sans-serif;white-space:nowrap;">✕ Baja</button></div>`;
+      }).join('');
+    }else alert('Error: '+(d.error||'No se pudo dar de baja'));
+  }catch(e){alert('Error de conexión');}
+}
 
 load();
 </script>

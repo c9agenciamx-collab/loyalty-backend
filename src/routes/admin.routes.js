@@ -88,3 +88,12 @@ router.get('/export/download', async (req, res) => {
 });
 
 export default router;
+
+router.delete('/customers/:id', generalLimiter, async (req, res) => {
+  try {
+    await prisma.customer.delete({ where: { id: req.params.id, businessId: req.businessId } });
+    return res.json({ ok: true });
+  } catch(e) {
+    return res.status(404).json({ error: 'Cliente no encontrado' });
+  }
+});
