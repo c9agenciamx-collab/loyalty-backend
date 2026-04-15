@@ -96,7 +96,7 @@ function start() {
 
 function stopAndBack() {
   if (scanner) { scanner.stop().catch(() => {}); }
-  history.back();
+  window.close();
 }
 
 async function submitScan(secret) {
@@ -116,7 +116,7 @@ async function submitScan(secret) {
         document.getElementById('prizeText').textContent = '¡Premio alcanzado: ' + data.milestonesReached[0].prizeName + '!';
         document.getElementById('prize').classList.add('show');
       }
-      setTimeout(() => history.back(), 4000);
+      setTimeout(() => window.close(), 4000);
     } else {
       showError(data.error || 'QR inválido o expirado');
       scanned = false;
