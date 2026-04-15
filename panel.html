@@ -35,7 +35,7 @@ body{background:var(--bg);color:var(--white);min-height:100vh;}
 .btn-logout:hover{border-color:var(--pink);color:var(--pink);}
 
 /* NAV */
-.nav{background:var(--surface);border-bottom:1px solid var(--border);display:flex;padding:0 24px;overflow-x:auto;}
+.nav-wrap{position:relative;background:var(--surface);border-bottom:1px solid var(--border);}.nav{display:flex;padding:0 24px;overflow-x:auto;}.nav::-webkit-scrollbar{display:none;}.nav-fade{position:absolute;right:0;top:0;bottom:0;width:40px;background:linear-gradient(to right,transparent,var(--surface));pointer-events:none;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;color:var(--muted);font-size:12px;}
 .nav::-webkit-scrollbar{display:none;}
 .ni{padding:14px 22px;font-size:15px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;display:flex;align-items:center;}
 .ni:hover{color:var(--white);}
@@ -134,12 +134,12 @@ body{background:var(--bg);color:var(--white);min-height:100vh;}
   <button class="btn-logout" onclick="cerrarSesion()">Cerrar sesión</button>
 </div>
 
-<div class="nav">
+<div class="nav-wrap"><div class="nav">
   <div class="ni on" onclick="pg('res',this)">Resumen</div>
   <div class="ni" onclick="pg('qr',this);loadQR()">📷 Escáner</div>
   <div class="ni" onclick="pg('sel',this)">Dar Sellos</div>
   <div class="ni" onclick="pg('cli',this)">Clientes</div>
-</div>
+</div><div class="nav-fade">›</div></div>
 
 <div class="pg on" id="pg-res">
   <div class="mets">
