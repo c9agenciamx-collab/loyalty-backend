@@ -243,7 +243,7 @@ async function load(){
     document.getElementById('ct').textContent=(d2.total||cls.length)+' clientes registrados';
     document.getElementById('cl').innerHTML=cls.map(c=>{
       const i=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-      return`<div class="cr"><div class="ca">${i}</div><div><div class="cn">${c.name}</div><div class="cm">${c.cardCode} · ${c.email||'Sin email'}</div></div><div class="cst">${c.totalStamps} ★</div></div>`;
+      return`<div class="cr"><div class="ca">${i}</div><div style="flex:1;min-width:0;"><div class="cn">${c.name}</div><div class="cm">${c.cardCode}</div><div class="cm">${c.email||'Sin email'}</div></div><div class="cst">${c.totalStamps}<br>★</div></div>`;
     }).join('');
   }catch(e){document.getElementById('st').textContent='Error: '+e.message;}
 }
