@@ -37,7 +37,7 @@ body{background:var(--bg);color:var(--white);min-height:100vh;}
 /* NAV */
 .nav{background:var(--surface);border-bottom:1px solid var(--border);display:flex;padding:0 24px;overflow-x:auto;}
 .nav::-webkit-scrollbar{display:none;}
-.ni{padding:16px 22px;font-size:15px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;}
+.ni{padding:14px 22px;font-size:15px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;display:flex;align-items:center;}
 .ni:hover{color:var(--white);}
 .ni.on{color:var(--white);border-bottom-color:var(--blue);}
 
@@ -130,11 +130,8 @@ body{background:var(--bg);color:var(--white);min-height:100vh;}
 <body>
 
 <div class="hdr">
-  <img class="hdr-logo" src="https://static.wixstatic.com/media/bc23e3_3e6ca2afbf894d55ad62fda9c54b1e7f~mv2.png" alt="Kivo Loop">
-  <div class="hdr-right">
-    <span class="hdr-biz" id="bizname">Panel del negocio</span>
-    <button class="btn-logout" onclick="cerrarSesion()">Cerrar sesión</button>
-  </div>
+  <span class="hdr-biz" id="bizname" style="font-size:18px;font-weight:800;">Panel del negocio</span>
+  <button class="btn-logout" onclick="cerrarSesion()">Cerrar sesión</button>
 </div>
 
 <div class="nav">
