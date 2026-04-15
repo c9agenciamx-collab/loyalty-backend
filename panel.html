@@ -111,7 +111,7 @@ body{background:var(--bg);color:var(--white);min-height:100vh;}
 /* QR PAGE */
 .qr-page{background:var(--bg);min-height:calc(100vh - 120px);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:30px 20px 30px;gap:22px;}
 .qr-label{font-size:15px;color:var(--gray);font-weight:500;text-align:center;}
-.qr-box{background:#fff;border-radius:18px;padding:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 60px rgba(0,194,255,0.15);max-width:280px;width:100%;}
+.qr-box{background:#fff;border-radius:18px;padding:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 60px rgba(0,194,255,0.15);width:min(260px,80vw);}
 .qr-timer-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;width:300px;}
 .qr-bar-bg{width:100%;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;}
 .qr-bar{height:6px;border-radius:3px;background:var(--grad);transition:width 1s linear;}
@@ -268,7 +268,7 @@ async function refreshQR(){
     const d=await r.json();
     const el=document.getElementById('business-qrcode');
     el.innerHTML='';
-    new QRCode(el,{text:d.secret,width:240,height:240,colorDark:'#0A0F1F',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+    new QRCode(el,{text:d.secret,width:220,height:220,colorDark:'#0A0F1F',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
     startTimer(d.expiresIn||qrRotateSecs);
   }catch(e){}
 }
