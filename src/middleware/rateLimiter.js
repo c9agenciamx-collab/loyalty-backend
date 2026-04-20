@@ -5,21 +5,18 @@ function onLimitReached(req) {
   securityLogger.rateLimited(req.ip, req.path);
 }
 
-const limitMessage = (windowMin, max) => ({
-  status: 429,
-  error: 'Too Many Requests',
-  message: `Límite: ${max} por ${windowMin} minutos. Intenta más tarde.`,
-});
-
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
-  message: limitMessage(15, 100),
   handler(req, res, next, options) {
     onLimitReached(req);
-    res.status(options.statusCode).json(options.message);
+    const retryAfter = res.getHeader('Retry-After');
+    const minutos = retryAfter ? Math.ceil(retryAfter / 60) : 15;
+    res.status(429).json({
+      error: `Demasiados intentos. Espera ${minutos} minuto${minutos !== 1 ? 's' : ''} antes de intentar de nuevo.`
+    });
   },
 });
 
@@ -28,10 +25,13 @@ export const authLimiter = rateLimit({
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
-  message: limitMessage(15, 5),
   handler(req, res, next, options) {
     onLimitReached(req);
-    res.status(options.statusCode).json(options.message);
+    const retryAfter = res.getHeader('Retry-After');
+    const minutos = retryAfter ? Math.ceil(retryAfter / 60) : 15;
+    res.status(429).json({
+      error: `Demasiados intentos de acceso. Espera ${minutos} minuto${minutos !== 1 ? 's' : ''} antes de intentar de nuevo.`
+    });
   },
 });
 
@@ -40,10 +40,13 @@ export const sensitiveLimit = rateLimit({
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
-  message: limitMessage(15, 10),
   handler(req, res, next, options) {
     onLimitReached(req);
-    res.status(options.statusCode).json(options.message);
+    const retryAfter = res.getHeader('Retry-After');
+    const minutos = retryAfter ? Math.ceil(retryAfter / 60) : 15;
+    res.status(429).json({
+      error: `Límite alcanzado. Espera ${minutos} minuto${minutos !== 1 ? 's' : ''} antes de intentar de nuevo.`
+    });
   },
 });
 
@@ -52,9 +55,12 @@ export const stampLimiter = rateLimit({
   max: 50,
   standardHeaders: true,
   legacyHeaders: false,
-  message: limitMessage(15, 50),
   handler(req, res, next, options) {
     onLimitReached(req);
-    res.status(options.statusCode).json(options.message);
+    const retryAfter = res.getHeader('Retry-After');
+    const minutos = retryAfter ? Math.ceil(retryAfter / 60) : 15;
+    res.status(429).json({
+      error: `Demasiados sellos en poco tiempo. Espera ${minutos} minuto${minutos !== 1 ? 's' : ''}.`
+    });
   },
 });
